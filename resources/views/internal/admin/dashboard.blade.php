@@ -68,6 +68,27 @@
         </div>
     </div>
 
+    <form method="GET" action="{{ route('internal.dashboard') }}" class="row g-3 p-4 bg-light border-bottom">
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Semua Status</option>
+                <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                <option value="persetujuan_wadek" {{ request('status') == 'persetujuan_wadek' ? 'selected' : '' }}>Menunggu
+                    Wadek</option>
+                <option value="siap_dicetak" {{ request('status') == 'siap_dicetak' ? 'selected' : '' }}>Selesai</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{{ route('internal.dashboard') }}" class="btn btn-outline-secondary w-100">Reset</a>
+        </div>
+    </form>
+
     <div class="table-container">
         <div class="p-4 bg-white border-bottom d-flex align-items-center justify-content-between">
             <h5 class="fw-bold text-dark m-0"><i class="bi bi-list-task me-2 text-success"></i> Antrean Pengajuan SK
@@ -124,8 +145,9 @@
                             <td>
                                 @if ($item->status == 'diajukan')
                                     <span
-                                        class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Diajukan
-                                        (Tugas Anda)</span>
+                                        class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Diajukannnn
+                                        (Tugas Anda)
+                                    </span>
                                 @elseif($item->status == 'persetujuan_wadek')
                                     <span
                                         class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">Persetujuan
@@ -172,7 +194,8 @@
                         </tr>
 
                         @if ($item->status == 'diajukan')
-                            <div class="modal fade" id="modalProdi{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade" id="modalProdi{{ $item->id }}" tabindex="-1"
+                                aria-hidden="true">
                                 <div class="modal-dialog modal-lg text-start">
                                     <div class="modal-content rounded-4 shadow">
                                         <form action="{{ route('validasi.sk-pembimbing.prodi', $item->id) }}"
@@ -229,8 +252,9 @@
                                                 <div class="mb-0">
                                                     <label class="form-label fw-bold small text-muted text-uppercase">Pilih
                                                         Pembimbing Pendamping (P2)</label>
-                                                    <select name="pembimbing_2_id" class="form-select rounded-3 py-2" required>
-                                                        <option value="">-- Tanpa Pembimbing Pendamping --</option>
+                                                    <select name="pembimbing_2_id" class="form-select rounded-3 py-2"
+                                                        required>
+                                                        <option value="">-- Pilih Dosen Pembimbing 1 --</option>
                                                         @foreach ($listDosen as $dosen)
                                                             <option value="{{ $dosen->id }}">
                                                                 {{ $dosen->nama_dosen ?? ($dosen->nama ?? $dosen->name) }}
@@ -264,6 +288,18 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="d-flex flex-column align-items-center mt-5 mb-4">
+                <nav aria-label="Page navigation">
+                    {{ $pengajuanSk->links('pagination::bootstrap-5') }}
+                </nav>
+                <div class="text-muted small mb-3 bg-white px-3 py-1 rounded-pill border shadow-sm">
+                    Menampilkan
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->firstItem() }}</span> -
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->lastItem() }}</span> dari
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->total() }}</span> pengajuan
+                </div>
+
+            </div>
         </div>
     </div>
 @endsection

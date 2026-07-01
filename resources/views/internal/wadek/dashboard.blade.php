@@ -186,8 +186,8 @@
                                                     <label
                                                         class="form-label fw-bold small text-muted text-uppercase">Pengesahan
                                                         Pembimbing 2</label>
-                                                    <select name="pembimbing_2_id" class="form-select rounded-3 py-2">
-                                                        <option value="">-- Tanpa Pembimbing Pendamping --</option>
+                                                    <select name="pembimbing_2_id" class="form-select rounded-3 py-2"
+                                                        required>
                                                         @foreach ($listDosen as $dosen)
                                                             <option value="{{ $dosen->id }}"
                                                                 {{ $item->pembimbing_2_id == $dosen->id ? 'selected' : '' }}>
@@ -244,6 +244,18 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="d-flex flex-column align-items-center mt-5 mb-4">
+                <nav aria-label="Page navigation">
+                    {{ $pengajuanSk->links('pagination::bootstrap-5') }}
+                </nav>
+                <div class="text-muted small mb-3 bg-white px-3 py-1 rounded-pill border shadow-sm">
+                    Menampilkan
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->firstItem() }}</span> -
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->lastItem() }}</span> dari
+                    <span class="fw-bold text-dark">{{ $pengajuanSk->total() }}</span> pengajuan
+                </div>
+
+            </div>
         </div>
     </div>
 @endsection

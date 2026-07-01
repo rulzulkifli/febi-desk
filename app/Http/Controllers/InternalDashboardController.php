@@ -10,79 +10,65 @@ use Illuminate\Support\Facades\DB;
 
 class InternalDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Ambil data pengajuan dan data dosen (Sama seperti sebelumnya)
-        $pengajuanSk = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])->latest()->get();
+        // 1. Ambil data pengajuan dengan FILTER dinamis
+        $query = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])->latest();
 
-        // Mengambil seluruh data dosen dengan perhitungan beban tugas secara real-time
+        // Terapkan Filter Status jika ada
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Terapkan Filter Tanggal jika ada
+        if ($request->filled('tanggal')) {
+            $query->whereDate('created_at', $request->tanggal);
+        }
+
+        // Gunakan paginate() dan pastikan filter tetap terbawa saat pindah halaman
+        $pengajuanSk = $query->paginate(10)->withQueryString();
+
+        // 2. Mengambil seluruh data dosen dengan perhitungan beban tugas (tetap sama)
         $listDosen = Dosen::all()->map(function ($dosen) {
-
-            // 1. Hitung total mahasiswa yang SAH dibimbing (Hanya hitung jika status siap_dicetak atau selesai)
             $dosen->total_bimbingan = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
                 ->where(function ($q) use ($dosen) {
                     $q->where('pembimbing_1_id', $dosen->id)
                         ->orWhere('pembimbing_2_id', $dosen->id);
                 })->count();
 
-            // 2. Hitung statistik penguji SAH (Hanya hitung jika status siap_dicetak atau selesai)
-            $dosen->jml_proposal = DB::table('pengajuan_sk_ujian')
-                ->where('jenis_ujian', 'proposal')
-                ->whereIn('status', ['siap_dicetak', 'selesai']) // Syarat disahkan
+            // Statistik Penguji SAH
+            $dosen->jml_proposal = DB::table('pengajuan_sk_ujian')->where('jenis_ujian', 'proposal')->whereIn('status', ['siap_dicetak', 'selesai'])
                 ->where(function ($q) use ($dosen) {
-                    $q->where('pembimbing_1_id', $dosen->id)
-                        ->orWhere('pembimbing_2_id', $dosen->id);
+                    $q->where('pembimbing_1_id', $dosen->id)->orWhere('pembimbing_2_id', $dosen->id);
                 })->count();
-
-            $dosen->jml_hasil = DB::table('pengajuan_sk_ujian')
-                ->where('jenis_ujian', 'hasil')
-                ->whereIn('status', ['siap_dicetak', 'selesai']) // Syarat disahkan
+            $dosen->jml_hasil = DB::table('pengajuan_sk_ujian')->where('jenis_ujian', 'hasil')->whereIn('status', ['siap_dicetak', 'selesai'])
                 ->where(function ($q) use ($dosen) {
-                    $q->where('pembimbing_1_id', $dosen->id)
-                        ->orWhere('pembimbing_2_id', $dosen->id);
+                    $q->where('pembimbing_1_id', $dosen->id)->orWhere('pembimbing_2_id', $dosen->id);
                 })->count();
-
-            $dosen->jml_skripsi = DB::table('pengajuan_sk_ujian')
-                ->where('jenis_ujian', 'skripsi')
-                ->whereIn('status', ['siap_dicetak', 'selesai']) // Syarat disahkan
+            $dosen->jml_skripsi = DB::table('pengajuan_sk_ujian')->where('jenis_ujian', 'skripsi')->whereIn('status', ['siap_dicetak', 'selesai'])
                 ->where(function ($q) use ($dosen) {
-                    $q->where('pembimbing_1_id', $dosen->id)
-                        ->orWhere('pembimbing_2_id', $dosen->id);
+                    $q->where('pembimbing_1_id', $dosen->id)->orWhere('pembimbing_2_id', $dosen->id);
                 })->count();
 
             return $dosen;
         });
 
-        // 2. Hitung Statistik (Sama seperti sebelumnya)
+        // 3. Hitung Statistik (Tetap sama)
         $menungguPengecekan = PengajuanSkPembimbing::where('status', 'diajukan')->count();
         $butuhAccWadek = PengajuanSkPembimbing::where('status', 'persetujuan_wadek')->count();
         $selesaiBulanIni = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
             ->whereMonth('updated_at', date('m'))
             ->whereYear('updated_at', date('Y'))->count();
 
-        // 3. LOGIKA PEMISAHAN HALAMAN BERDASARKAN PERAN (ROLE)
+        // 4. LOGIKA PEMISAHAN HALAMAN
         $user = Auth::user();
 
         if ($user->peran == 'admin_prodi') {
-            // Arahkan ke file views/internal/admin/dashboard.blade.php
-            return view('internal.admin.dashboard', compact(
-                'pengajuanSk',
-                'listDosen',
-                'menungguPengecekan',
-                'butuhAccWadek',
-                'selesaiBulanIni'
-            ));
+            return view('internal.admin.dashboard', compact('pengajuanSk', 'listDosen', 'menungguPengecekan', 'butuhAccWadek', 'selesaiBulanIni'));
         } elseif ($user->peran == 'wadek_1') {
-            // Arahkan ke file views/internal/wadek/dashboard.blade.php
-            return view('internal.wadek.dashboard', compact(
-                'pengajuanSk',
-                'listDosen',
-                'butuhAccWadek',
-                'selesaiBulanIni'
-            ));
+            return view('internal.wadek.dashboard', compact('pengajuanSk', 'listDosen', 'butuhAccWadek', 'selesaiBulanIni'));
         }
 
-        // Jika ada peran lain yang nyasar, kembalikan ke halaman login
         return redirect()->route('febi.login')->with('error', 'Akses tidak diizinkan.');
     }
 
