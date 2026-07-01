@@ -37,7 +37,13 @@ Route::prefix('febi')->group(function () {
 
         // Mengarahkan ke InternalDashboardController
         Route::get('/dashboard', [InternalDashboardController::class, 'index'])->name('internal.dashboard');
+        // Fitur Hapus Pengajuan oleh Admin Prodi
+        Route::delete('/pengajuan-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'hapusPengajuan'])->name('internal.pengajuan.destroy');
+        // Tambahkan di dalam route group yang sama
+        Route::patch('/tolak-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
     });
-});
 
-// Cari bagian ini di routes/web.php kamu dan ubah menjadi:
+    // Tambahkan di dalam Route::prefix('febi')->middleware(...) grup
+    Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
+    Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
+});

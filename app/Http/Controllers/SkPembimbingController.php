@@ -20,7 +20,7 @@ class SkPembimbingController extends Controller
             'nama_mahasiswa' => 'required|string|max:255',
             'prodi' => 'required|string',
             'judul_skripsi' => 'required|string',
-            'path_file_syarat' => 'required|file|mimes:pdf|max:2048', // Maksimal PDF 2MB
+            'path_file_syarat' => 'required|file|mimes:pdf|max:200', // Maksimal PDF 2MB
         ], [
             'path_file_syarat.max' => 'Ukuran berkas persyaratan tidak boleh melebihi 2 Megabytes (MB).',
             'path_file_syarat.mimes' => 'Berkas persyaratan wajib berformat PDF.',
@@ -29,7 +29,7 @@ class SkPembimbingController extends Controller
         // 2. Proses upload file ke folder storage/app/private/syarat-sk-pembimbing (Aman di Laravel 13)
         $filePath = null;
         if ($request->hasFile('path_file_syarat')) {
-            $filePath = $request->file('path_file_syarat')->store('syarat-sk-pembimbing');
+            $filePath = $request->file('path_file_syarat')->store('syarat-sk-pembimbing', 'public');
         }
 
         // 3. Simpan data ke database (Status default otomatis 'diajukan' sesuai cetakan migration)

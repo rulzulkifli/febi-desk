@@ -153,7 +153,7 @@
                                     accept="application/pdf" required>
                                 <div class="form-text text-muted small mt-2">
                                     * Unggah gabungan berkas persyaratan (KRS, KHS, atau Form Pengajuan) dalam <strong>1
-                                        file PDF</strong> (Maksimal ukuran: 2 MB).
+                                        file PDF</strong> (Maksimal ukuran: 200 KB).
                                 </div>
                             </div>
 
