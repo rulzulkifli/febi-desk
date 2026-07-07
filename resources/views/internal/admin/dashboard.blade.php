@@ -2,19 +2,6 @@
 
 @section('title', 'Dashboard Admin Prodi')
 
-@section('sidebar_menu')
-    <a class="nav-link-custom {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}"
-        href="{{ route('internal.dashboard') }}">
-        <i class="bi bi-grid-1x2-fill"></i> Antrean Berkas
-    </a>
-    <a class="nav-link-custom" href="#">
-        <i class="bi bi-people"></i> Kelola Data Dosen
-    </a>
-    <a class="nav-link-custom" href="#">
-        <i class="bi bi-building"></i> Master Prodi
-    </a>
-@endsection
-
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
@@ -68,7 +55,8 @@
         </div>
     </div>
 
-    <form method="GET" action="{{ route('internal.dashboard') }}" class="row g-3 p-4 bg-light border-bottom">
+    <form method="GET" action="{{ route('internal.dashboard') }}" data-pjax
+        class="row g-3 p-4 bg-light border-bottom rounded-top">
         <div class="col-md-3">
             <select name="status" class="form-select">
                 <option value="">Semua Status</option>
@@ -89,7 +77,7 @@
         </div>
     </form>
 
-    <div class="table-container">
+    <div class="table-container border-top-0">
         <div class="p-4 bg-white border-bottom d-flex align-items-center justify-content-between">
             <h5 class="fw-bold text-dark m-0"><i class="bi bi-list-task me-2 text-success"></i> Antrean Pengajuan SK
                 Pembimbing</h5>
@@ -130,9 +118,8 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <!-- Di dalam loop tabel Admin Prodi -->
                                     @if ($item->catatan_admin && $item->status == 'diajukan')
-                                        <div class="alert alert-danger p-2 mt-2" style="font-size: 11px;">
+                                        <div class="alert alert-danger p-2 mt-2 mb-0 ms-2" style="font-size: 11px;">
                                             <i class="bi bi-exclamation-triangle-fill"></i> <strong>Revisi Wadek:</strong>
                                             {{ $item->catatan_admin }}
                                         </div>
@@ -145,7 +132,7 @@
                             <td>
                                 @if ($item->status == 'diajukan')
                                     <span
-                                        class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Diajukannnn
+                                        class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Diajukan
                                         (Tugas Anda)
                                     </span>
                                 @elseif($item->status == 'persetujuan_wadek')
@@ -179,8 +166,7 @@
 
                                     @if ($item->status == 'diajukan')
                                         <form action="{{ route('internal.pengajuan.destroy', $item->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajuan ini secara permanen? Berkas PDF juga akan terhapus.');">
+                                            class="d-inline form-delete">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-action shadow-sm"
@@ -194,8 +180,7 @@
                         </tr>
 
                         @if ($item->status == 'diajukan')
-                            <div class="modal fade" id="modalProdi{{ $item->id }}" tabindex="-1"
-                                aria-hidden="true">
+                            <div class="modal fade" id="modalProdi{{ $item->id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-lg text-start">
                                     <div class="modal-content rounded-4 shadow">
                                         <form action="{{ route('validasi.sk-pembimbing.prodi', $item->id) }}"
@@ -278,6 +263,7 @@
                                 </div>
                             </div>
                         @endif
+
                     @empty
                         <tr>
                             <td colspan="4" class="text-center text-muted py-5">
@@ -288,17 +274,19 @@
                     @endforelse
                 </tbody>
             </table>
+
             <div class="d-flex flex-column align-items-center mt-5 mb-4">
                 <nav aria-label="Page navigation">
                     {{ $pengajuanSk->links('pagination::bootstrap-5') }}
                 </nav>
-                <div class="text-muted small mb-3 bg-white px-3 py-1 rounded-pill border shadow-sm">
-                    Menampilkan
-                    <span class="fw-bold text-dark">{{ $pengajuanSk->firstItem() }}</span> -
-                    <span class="fw-bold text-dark">{{ $pengajuanSk->lastItem() }}</span> dari
-                    <span class="fw-bold text-dark">{{ $pengajuanSk->total() }}</span> pengajuan
-                </div>
-
+                @if ($pengajuanSk->total() > 0)
+                    <div class="text-muted small mb-3 bg-white px-3 py-1 rounded-pill border shadow-sm mt-3">
+                        Menampilkan
+                        <span class="fw-bold text-dark">{{ $pengajuanSk->firstItem() }}</span> -
+                        <span class="fw-bold text-dark">{{ $pengajuanSk->lastItem() }}</span> dari
+                        <span class="fw-bold text-dark">{{ $pengajuanSk->total() }}</span> pengajuan
+                    </div>
+                @endif
             </div>
         </div>
     </div>

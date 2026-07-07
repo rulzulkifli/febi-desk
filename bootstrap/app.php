@@ -12,9 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Alias middleware yang sudah Anda buat
         $middleware->alias([
             'cek_peran' => \App\Http\Middleware\CheckPeran::class,
         ]);
+
+        // TAMBAHKAN BARIS INI
+        // Mengarahkan tamu (belum login) ke halaman login kustom Anda
+        $middleware->redirectGuestsTo(fn(Request $request) => route('febi.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -56,6 +56,12 @@
             border-radius: 16px;
             background: #ffffff;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
 
         .icon-shape {
@@ -124,7 +130,6 @@
 
         .pagination .page-item.active .page-link {
             background-color: #059669;
-            /* Hijau FEBI Desk */
             color: #ffffff;
             box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
         }
@@ -132,6 +137,22 @@
         .pagination .page-item .page-link:hover {
             background-color: #f1f5f9;
             color: #059669;
+        }
+
+        /* Animasi Transisi Pjax */
+        #pjax-container {
+            transition: opacity 0.2s ease-in-out;
+            opacity: 1;
+        }
+
+        #pjax-container.loading {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* SweetAlert Font Adjustment */
+        .swal2-popup {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
     </style>
 </head>
@@ -153,8 +174,53 @@
 
             <hr class="text-muted my-3">
 
-            <nav class="nav flex-column">
-                @yield('sidebar_menu')
+            <!-- Sidebar Menu -->
+            <nav class="nav flex-column" id="sidebar-nav">
+                @php
+                    // Ambil peran user yang sedang login dan ubah ke huruf kecil untuk mempermudah pengecekan
+                    $peran = strtolower(Auth::user()->peran ?? '');
+                    $isAdmin = str_contains($peran, 'admin');
+                    $isWadek = str_contains($peran, 'wadek');
+                @endphp
+
+                <!-- ================= MENU KHUSUS ADMIN ================= -->
+                @if ($isAdmin)
+                    <div class="text-uppercase text-muted fw-bold mb-2 mt-2 px-3"
+                        style="font-size: 10px; letter-spacing: 1px;">Menu Admin</div>
+
+                    <a class="nav-link-custom {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}"
+                        href="{{ route('internal.dashboard') }}">
+                        <i class="bi bi-grid-1x2-fill"></i> Antrean Berkas
+                    </a>
+                    <a class="nav-link-custom" href="#">
+                        <i class="bi bi-building"></i> Master Prodi
+                    </a>
+                @endif
+
+                <!-- ================= MENU KHUSUS WADEK ================= -->
+                @if ($isWadek)
+                    <div class="text-uppercase text-muted fw-bold mb-2 mt-2 px-3"
+                        style="font-size: 10px; letter-spacing: 1px;">Menu Wadek</div>
+
+                    <a class="nav-link-custom {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}"
+                        href="{{ route('internal.dashboard') }}">
+                        <i class="bi bi-inbox-fill"></i> Antrean Masuk
+                    </a>
+                    <a class="nav-link-custom {{ request()->routeIs('wadek.riwayat') ? 'active' : '' }}"
+                        href="{{ route('wadek.riwayat') }}">
+                        <i class="bi bi-clock-history"></i> Riwayat Pengesahan
+                    </a>
+                @endif
+
+                <!-- ================= MENU BERSAMA (ADMIN & WADEK) ================= -->
+                <div class="text-uppercase text-muted fw-bold mb-2 mt-3 px-3"
+                    style="font-size: 10px; letter-spacing: 1px;">Akademik</div>
+
+                <a class="nav-link-custom {{ request()->routeIs('internal.dosen.monitoring') ? 'active' : '' }}"
+                    href="{{ route('internal.dosen.monitoring') }}">
+                    <i class="bi bi-people-fill"></i> Monitoring Dosen
+                </a>
+
             </nav>
         </div>
 
@@ -171,9 +237,10 @@
                     </small>
                 </div>
             </div>
-            <form action="{{ route('febi.logout') }}" method="POST">
+            <form action="{{ route('febi.logout') }}" method="POST" id="form-logout">
                 @csrf
-                <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-3 fw-semibold py-2">
+                <button type="button"
+                    class="btn btn-outline-danger btn-sm w-100 rounded-3 fw-semibold py-2 btn-logout">
                     <i class="bi bi-box-arrow-left me-1"></i> Keluar Sistem
                 </button>
             </form>
@@ -181,17 +248,119 @@
     </div>
 
     <div class="main-content">
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+        <div id="pjax-container">
+            @if (session('success'))
+                <div id="flash-success" data-message="{{ session('success') }}" style="display: none;"></div>
+            @endif
 
-        @yield('content')
+            @yield('content')
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.pjax/2.0.1/jquery.pjax.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            // 1. Inisialisasi Pjax
+            // Mengatur link dan form GET (seperti pagination & filter) agar menggunakan AJAX Pjax
+            $(document).pjax('a:not([target="_blank"])', '#pjax-container', {
+                timeout: 5000,
+                fragment: '#pjax-container'
+            });
+
+            $(document).on('submit', 'form[method="GET"]', function(event) {
+                $.pjax.submit(event, '#pjax-container', {
+                    fragment: '#pjax-container'
+                });
+            });
+
+            // 2. Animasi Transisi Smooth
+            $(document).on('pjax:send', function() {
+                $('#pjax-container').addClass('loading');
+            });
+
+            $(document).on('pjax:complete', function() {
+                $('#pjax-container').removeClass('loading');
+                initPlugins(); // Re-init komponen JS setiap ganti halaman
+            });
+
+            // 3. Fungsi Re-inisialisasi (Dipanggil awal dan setiap Pjax selesai)
+            // 3. Fungsi Re-inisialisasi (Dipanggil awal dan setiap Pjax selesai)
+            function initPlugins() {
+                // Notifikasi Session dengan SweetAlert (Membaca dari elemen tersembunyi)
+                let flashSuccess = $('#flash-success');
+                if (flashSuccess.length > 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: flashSuccess.data('message'),
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    });
+
+                    // Hapus elemennya setelah dibaca agar tidak muncul lagi saat Pjax terpanggil
+                    flashSuccess.remove();
+                }
+
+                // Konfirmasi Hapus Data dengan SweetAlert
+                $('.form-delete').off('submit').on('submit', function(e) {
+                    e.preventDefault();
+                    let form = this;
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: "Data dan berkas PDF akan dihapus secara permanen!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="bi bi-trash-fill me-1"></i> Ya, Hapus!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            }
+
+            // Panggil inisialisasi pada saat pertama kali load
+            initPlugins();
+
+            // Konfirmasi Logout
+            $('.btn-logout').on('click', function() {
+                Swal.fire({
+                    title: 'Keluar Sistem?',
+                    text: "Sesi Anda akan diakhiri.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Keluar',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#form-logout').submit();
+                    }
+                });
+            });
+
+            // Update Class Active Sidebar saat ganti URL lewat Pjax
+            $(document).on('pjax:success', function() {
+                let currentUrl = window.location.href;
+                $('#sidebar-nav .nav-link-custom').each(function() {
+                    $(this).toggleClass('active', $(this).prop('href') === currentUrl);
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

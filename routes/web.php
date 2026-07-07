@@ -41,6 +41,11 @@ Route::prefix('febi')->group(function () {
         Route::delete('/pengajuan-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'hapusPengajuan'])->name('internal.pengajuan.destroy');
         // Tambahkan di dalam route group yang sama
         Route::patch('/tolak-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
+
+        // Rute untuk Monitoring Data Dosen (Bisa diakses Admin & Wadek)
+        Route::get('/internal/dosen', [App\Http\Controllers\InternalDashboardController::class, 'monitoringDosen'])
+            ->name('internal.dosen.monitoring')
+            ->middleware(['auth']);
     });
 
     // Tambahkan di dalam Route::prefix('febi')->middleware(...) grup

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Dosen;
 use App\Models\PengajuanSkPembimbing;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -138,5 +139,72 @@ class InternalDashboardController extends Controller
             ->paginate(10);
 
         return view('internal.wadek.riwayat', compact('pengajuanSk'));
+    }
+
+    public function monitoringDosen(Request $request)
+    {
+        // Default range: 1 bulan terakhir jika tanggal tidak diisi
+        $startDate = $request->input('start_date', Carbon::now()->subMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+
+        // Siapkan waktu lengkap untuk query data antara 00:00:00 sampai 23:59:59
+        $startDateTime = $startDate . ' 00:00:00';
+        $endDateTime = $endDate . ' 23:59:59';
+
+        // 1. Ambil agregasi data Pembimbing 1 dalam range tanggal
+        $pembimbing1Counts = DB::table('pengajuan_sk_pembimbing')
+            ->select('pembimbing_1_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->whereIn('status', ['persetujuan_wadek', 'siap_dicetak', 'selesai'])
+            ->groupBy('pembimbing_1_id')
+            ->pluck('total', 'pembimbing_1_id');
+
+        // 2. Ambil agregasi data Pembimbing 2 dalam range tanggal
+        $pembimbing2Counts = DB::table('pengajuan_sk_pembimbing')
+            ->select('pembimbing_2_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->whereIn('status', ['persetujuan_wadek', 'siap_dicetak', 'selesai'])
+            ->groupBy('pembimbing_2_id')
+            ->pluck('total', 'pembimbing_2_id');
+
+        // 3. Ambil agregasi data Penguji berdasarkan schema yang benar (Ketua, Sekretaris, Anggota 1, Anggota 2)
+        $ketuaCounts = DB::table('pengajuan_sk_ujian')
+            ->select('ketua_penguji_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->groupBy('ketua_penguji_id')->pluck('total', 'ketua_penguji_id');
+
+        $sekretarisCounts = DB::table('pengajuan_sk_ujian')
+            ->select('sekretaris_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->groupBy('sekretaris_id')->pluck('total', 'sekretaris_id');
+
+        $anggota1Counts = DB::table('pengajuan_sk_ujian')
+            ->select('anggota_1_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->groupBy('anggota_1_id')->pluck('total', 'anggota_1_id');
+
+        $anggota2Counts = DB::table('pengajuan_sk_ujian')
+            ->select('anggota_2_id', DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->groupBy('anggota_2_id')->pluck('total', 'anggota_2_id');
+
+        // Ambil semua data dosen untuk dipetakan statistiknya
+        $allDosen = Dosen::all()->map(function ($dosen) use ($pembimbing1Counts, $pembimbing2Counts, $ketuaCounts, $sekretarisCounts, $anggota1Counts, $anggota2Counts) {
+            $dosen->p1_count = $pembimbing1Counts->get($dosen->id, 0);
+            $dosen->p2_count = $pembimbing2Counts->get($dosen->id, 0);
+
+            // Total Menguji gabungan dari keempat posisi
+            $dosen->penguji_count = $ketuaCounts->get($dosen->id, 0)
+                + $sekretarisCounts->get($dosen->id, 0)
+                + $anggota1Counts->get($dosen->id, 0)
+                + $anggota2Counts->get($dosen->id, 0);
+
+            // Total Kontribusi Keseluruhan
+            $dosen->total_kontribusi = $dosen->p1_count + $dosen->p2_count + $dosen->penguji_count;
+
+            return $dosen;
+        })->sortByDesc('total_kontribusi'); // Urutkan dari dosen dengan kontribusi tertinggi
+
+        return view('internal.dosen.monitoring', compact('allDosen', 'startDate', 'endDate'));
     }
 }

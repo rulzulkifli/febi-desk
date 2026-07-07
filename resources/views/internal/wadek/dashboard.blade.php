@@ -2,15 +2,6 @@
 
 @section('title', 'Ruang Kerja Wakil Dekan 1')
 
-@section('sidebar_menu')
-    <a class="nav-link-custom {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}" href="{{ route('internal.dashboard') }}">
-        <i class="bi bi-shield-check"></i> Validasi Dokumen
-    </a>
-    <a class="nav-link-custom" href="#">
-        <i class="bi bi-bar-chart-line"></i> Rekapitulasi & Laporan
-    </a>
-@endsection
-
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
