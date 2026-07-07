@@ -183,7 +183,7 @@
                             <tr>
                                 <th>Mahasiswa (Ujian)</th>
                                 <th>Program Studi</th>
-                                <th>Status</th>
+                                <th>Statussss</th>
                                 <th class="text-end">Tindakan Admin</th>
                             </tr>
                         </thead>
@@ -201,10 +201,10 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td><div class="fw-medium text-dark">{{ $item->prodi }}</div></td>
+                                    <td><div class="fw-medium text-dark"></div></td>
                                     <td>
                                         @if ($item->status == 'diajukan')
-                                            <span class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Tugas Anda</span>
+                                            <span class="badge bg-warning-subtle text-warning fw-semibold px-3 py-2 rounded-pill">Tugas Andaaaa</span>
                                         @elseif($item->status == 'persetujuan_wadek')
                                             <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">Di Meja Wadek</span>
                                         @elseif($item->status == 'siap_dicetak')

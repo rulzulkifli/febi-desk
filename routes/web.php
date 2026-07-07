@@ -13,6 +13,9 @@ Route::get('/sk-ujian/create', [SkUjianController::class, 'create'])->name('sk-u
 // Route web standar untuk dicek oleh jQuery AJAX
 Route::get('/sk-ujian/cek-nim/{nim}', [SkUjianController::class, 'cekNim'])->name('sk-ujian.cek-nim');
 
+// Proses submit form Pengajuan SK Ujian
+Route::post('/sk-ujian/store', [SkUjianController::class, 'store'])->name('sk-ujian.store');
+
 
 // Halaman form pendaftaran SK Pembimbing
 Route::get('/sk-pembimbing/create', [SkPembimbingController::class, 'create'])->name('sk-pembimbing.create');

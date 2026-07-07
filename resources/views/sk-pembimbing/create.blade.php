@@ -123,19 +123,13 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label for="prodi" class="form-label fw-semibold text-secondary">Program
-                                    Studi</label>
+                            <div class="col-md-6 mb-3"> <label for="prodi"
+                                    class="form-label fw-semibold text-secondary">Program Studi</label>
                                 <select id="prodi" name="prodi" class="form-select" required>
-                                    <option value="" disabled selected>-- Pilih Program Studi Anda --</option>
-
-                                    @foreach ($program_studi as $item)
-                                        <option value="{{ $item->nama_prodi }}"
-                                            {{ old('prodi') == $item->nama_prodi ? 'selected' : '' }}>
-                                            {{ $item->nama_prodi }} ({{ $item->singkatan }})
-                                        </option>
+                                    <option value="">-- Pilih Program Studi --</option>
+                                    @foreach ($prodis as $prodi)
+                                        <option value="{{ $prodi->id }}">{{ $prodi->nama_prodi }}</option>
                                     @endforeach
-
                                 </select>
                             </div>
 
@@ -200,7 +194,7 @@
             $('#formSkPembimbing').on('submit', function() {
                 $('#btnSubmit').attr('disabled', true).html(
                     '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Memproses Kiriman...'
-                    );
+                );
             });
 
         });

@@ -16,15 +16,15 @@ class InternalDashboardController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Ambil Data Dosen untuk Dropdown (Admin & Wadek sama-sama butuh ini)
-        // Kita cukup pakai ::all() karena beban tugasnya sudah dihitung otomatis oleh Model
+        // 1. Ambil Data Dosen untuk Dropdown
         $listDosen = \App\Models\Dosen::all();
 
         // 2. LOGIKA UNTUK ADMIN PRODI
         if ($user->peran == 'admin_prodi') {
 
-            $queryPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])->latest();
-            $queryUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2'])->latest();
+            // --- TAMBAHKAN 'programStudi' DI DALAM ARRAY WITH ---
+            $queryPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2', 'programStudi'])->latest();
+            $queryUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])->latest();
 
             // Filter Status & Tanggal (Hanya untuk Admin)
             if ($request->filled('status')) {
@@ -51,12 +51,13 @@ class InternalDashboardController extends Controller
             // 3. LOGIKA UNTUK WADEK 1
         } elseif ($user->peran == 'wadek_1') {
 
-            $pengajuanSkPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])
+            // --- TAMBAHKAN 'programStudi' DI DALAM ARRAY WITH ---
+            $pengajuanSkPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2', 'programStudi'])
                 ->where('status', 'persetujuan_wadek')
                 ->latest()
                 ->paginate(10, ['*'], 'page_pembimbing');
 
-            $pengajuanSkUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2'])
+            $pengajuanSkUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
                 ->where('status', 'persetujuan_wadek')
                 ->latest()
                 ->paginate(10, ['*'], 'page_ujian');

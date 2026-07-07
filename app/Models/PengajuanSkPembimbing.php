@@ -36,4 +36,9 @@ class PengajuanSkPembimbing extends Model
     {
         return $this->belongsTo(Dosen::class, 'pembimbing_2_id');
     }
+
+    public function programStudi(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\ProgramStudi::class, 'prodi');
+    }
 }
