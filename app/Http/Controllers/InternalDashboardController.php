@@ -12,28 +12,37 @@ class InternalDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil data pengajuan dengan FILTER dinamis
+        // 1. Inisialisasi Query dasar (mengambil data dengan relasi Dosen)
         $query = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])->latest();
 
-        // Terapkan Filter Status jika ada
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Terapkan Filter Tanggal jika ada
+        // 2. Terapkan Filter yang berlaku umum
         if ($request->filled('tanggal')) {
             $query->whereDate('created_at', $request->tanggal);
         }
 
-        // Gunakan paginate() dan pastikan filter tetap terbawa saat pindah halaman
-        $pengajuanSk = $query->paginate(10)->withQueryString();
+        // 3. LOGIKA PEMISAHAN PERAN (ROLE)
+        $user = Auth::user();
 
-        // 2. Mengambil seluruh data dosen dengan perhitungan beban tugas (tetap sama)
+        if ($user->peran == 'admin_prodi') {
+            // Filter status khusus untuk Admin
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+            $pengajuanSk = $query->paginate(10)->withQueryString();
+        } elseif ($user->peran == 'wadek_1') {
+            // Wadek: Hanya tampilkan yang perlu di-ACC (persetujuan_wadek)
+            $pengajuanSk = $query->where('status', 'persetujuan_wadek')
+                ->paginate(10)
+                ->withQueryString();
+        } else {
+            return redirect()->route('febi.login')->with('error', 'Akses tidak diizinkan.');
+        }
+
+        // 4. Data Dosen untuk Dropdown (Beban Tugas Real-time)
         $listDosen = Dosen::all()->map(function ($dosen) {
             $dosen->total_bimbingan = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
                 ->where(function ($q) use ($dosen) {
-                    $q->where('pembimbing_1_id', $dosen->id)
-                        ->orWhere('pembimbing_2_id', $dosen->id);
+                    $q->where('pembimbing_1_id', $dosen->id)->orWhere('pembimbing_2_id', $dosen->id);
                 })->count();
 
             // Statistik Penguji SAH
@@ -53,41 +62,19 @@ class InternalDashboardController extends Controller
             return $dosen;
         });
 
-        // 3. Hitung Statistik (Tetap sama)
+        // 5. Statistik Dashboard
         $menungguPengecekan = PengajuanSkPembimbing::where('status', 'diajukan')->count();
         $butuhAccWadek = PengajuanSkPembimbing::where('status', 'persetujuan_wadek')->count();
         $selesaiBulanIni = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
             ->whereMonth('updated_at', date('m'))
             ->whereYear('updated_at', date('Y'))->count();
 
-        // 4. LOGIKA PEMISAHAN HALAMAN
-        $user = Auth::user();
-
+        // 6. Return ke View yang sesuai
         if ($user->peran == 'admin_prodi') {
             return view('internal.admin.dashboard', compact('pengajuanSk', 'listDosen', 'menungguPengecekan', 'butuhAccWadek', 'selesaiBulanIni'));
-        } elseif ($user->peran == 'wadek_1') {
+        } else {
             return view('internal.wadek.dashboard', compact('pengajuanSk', 'listDosen', 'butuhAccWadek', 'selesaiBulanIni'));
         }
-
-        return redirect()->route('febi.login')->with('error', 'Akses tidak diizinkan.');
-    }
-
-    // Proses Plotting oleh Admin Prodi (Meneruskan ke Wadek 1)
-    public function prosesProdi(Request $request, $id)
-    {
-        $request->validate([
-            'pembimbing_1_id' => 'required|exists:dosen,id',
-            'pembimbing_2_id' => 'nullable|exists:dosen,id|different:pembimbing_1_id',
-        ]);
-
-        $pengajuan = PengajuanSkPembimbing::findOrFail($id);
-        $pengajuan->update([
-            'pembimbing_1_id' => $request->pembimbing_1_id,
-            'pembimbing_2_id' => $request->pembimbing_2_id,
-            'status'          => 'persetujuan_wadek' // Status berubah naik tingkat
-        ]);
-
-        return redirect()->back()->with('success', 'Dosen pembimbing berhasil di-plot dan diteruskan ke Wadek 1.');
     }
 
     // Proses Validasi & Sinkronisasi Akhir oleh Wadek 1 (Dapat mengedit pembimbing)
@@ -140,5 +127,16 @@ class InternalDashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Dokumen telah dikembalikan ke Admin Prodi dengan catatan revisi.');
+    }
+
+    public function riwayatWadek(Request $request)
+    {
+        // Mengambil data yang sudah disahkan
+        $pengajuanSk = \App\Models\PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])
+            ->whereIn('status', ['siap_dicetak', 'selesai'])
+            ->latest()
+            ->paginate(10);
+
+        return view('internal.wadek.riwayat', compact('pengajuanSk'));
     }
 }

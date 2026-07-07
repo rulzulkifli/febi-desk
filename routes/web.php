@@ -46,4 +46,6 @@ Route::prefix('febi')->group(function () {
     // Tambahkan di dalam Route::prefix('febi')->middleware(...) grup
     Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
     Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
+    // Tambahkan baris ini di routes/web.php
+    Route::get('/wadek/riwayat', [\App\Http\Controllers\InternalDashboardController::class, 'riwayatWadek'])->name('wadek.riwayat');
 });
