@@ -183,7 +183,6 @@
                     $isWadek = str_contains($peran, 'wadek');
                 @endphp
 
-                <!-- ================= MENU KHUSUS ADMIN ================= -->
                 @if ($isAdmin)
                     <div class="text-uppercase text-muted fw-bold mb-2 mt-2 px-3"
                         style="font-size: 10px; letter-spacing: 1px;">Menu Admin</div>
@@ -197,22 +196,20 @@
                     </a>
                 @endif
 
-                <!-- ================= MENU KHUSUS WADEK ================= -->
                 @if ($isWadek)
                     <div class="text-uppercase text-muted fw-bold mb-2 mt-2 px-3"
                         style="font-size: 10px; letter-spacing: 1px;">Menu Wadek</div>
 
                     <a class="nav-link-custom {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}"
                         href="{{ route('internal.dashboard') }}">
-                        <i class="bi bi-inbox-fill"></i> Antrean Masuk
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard Validasi
                     </a>
-                    <a class="nav-link-custom {{ request()->routeIs('wadek.riwayat') ? 'active' : '' }}"
-                        href="{{ route('wadek.riwayat') }}">
-                        <i class="bi bi-clock-history"></i> Riwayat Pengesahan
+                    <a class="nav-link-custom {{ request()->routeIs('internal.wadek.riwayat') ? 'active' : '' }}"
+                        href="{{ route('internal.wadek.riwayat') }}">
+                        <i class="bi bi-clock-history"></i> Riwayat SK
                     </a>
                 @endif
 
-                <!-- ================= MENU BERSAMA (ADMIN & WADEK) ================= -->
                 <div class="text-uppercase text-muted fw-bold mb-2 mt-3 px-3"
                     style="font-size: 10px; letter-spacing: 1px;">Akademik</div>
 

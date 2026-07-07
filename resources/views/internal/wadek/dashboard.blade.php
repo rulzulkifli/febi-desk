@@ -1,82 +1,400 @@
 @extends('layouts.internal')
 
-@section('title', 'Ruang Kerja Wakil Dekan 1')
+@section('title', 'Dashboard Wakil Dekan 1')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Validasi Dokumen Akademik</h2>
-            <p class="text-muted mb-0">Tinjau dan sahkan usulan formasi dosen pembimbing.</p>
+            <h2 class="fw-bold text-dark mb-1">Ruang Kerja Wakil Dekan 1</h2>
+            <p class="text-muted mb-0">Pantau dan validasi antrean pengajuan SK Pembimbing dan SK Ujian Mahasiswa.</p>
         </div>
     </div>
 
-    <!-- Statistik -->
-    <div class="row g-4 mb-5">
-        <div class="col-12 col-md-6">
-            <div class="card-stat p-4 border-start border-primary border-4">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-semibold d-block mb-1">Butuh Persetujuan Saya</span>
-                        <h3 class="fw-bold text-dark m-0">{{ $butuhAccWadek }}</h3>
-                    </div>
-                    <div class="icon-shape bg-primary-subtle text-primary"><i class="bi bi-file-earmark-check-fill"></i></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6">
-            <div class="card-stat p-4 border-start border-success border-4">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="text-muted small fw-semibold d-block mb-1">Disahkan Bulan Ini</span>
-                        <h3 class="fw-bold text-dark m-0">{{ $selesaiBulanIni }}</h3>
-                    </div>
-                    <div class="icon-shape bg-success-subtle text-success"><i class="bi bi-check-circle-fill"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NAVBAR TAB -->
-    <ul class="nav nav-pills mb-4">
-        <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('internal.dashboard') ? 'active' : '' }}" href="{{ route('internal.dashboard') }}">
-                <i class="bi bi-inbox-fill me-1"></i> Perlu Diproses
-            </a>
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm border" id="wadekTabs" role="tablist"
+        style="width: fit-content;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4 rounded-pill d-flex align-items-center" id="pembimbing-tab"
+                data-bs-toggle="pill" data-bs-target="#pembimbing" type="button" role="tab">
+                <i class="bi bi-person-lines-fill me-2"></i> ACC Pembimbing
+                @if ($pengajuanSkPembimbing->total() > 0)
+                    <span class="badge bg-danger ms-2 rounded-pill shadow-sm">{{ $pengajuanSkPembimbing->total() }}</span>
+                @endif
+            </button>
         </li>
-        <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('wadek.riwayat') ? 'active' : '' }}" href="{{ route('wadek.riwayat') }}">
-                <i class="bi bi-clock-history me-1"></i> Riwayat ACC
-            </a>
+        <li class="nav-item ms-2" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded-pill d-flex align-items-center" id="penguji-tab"
+                data-bs-toggle="pill" data-bs-target="#penguji" type="button" role="tab">
+                <i class="bi bi-file-earmark-person me-2"></i> ACC Penguji
+                @if ($pengajuanSkUjian->total() > 0)
+                    <span class="badge bg-danger ms-2 rounded-pill shadow-sm">{{ $pengajuanSkUjian->total() }}</span>
+                @endif
+            </button>
         </li>
     </ul>
 
-    <!-- Tabel Data -->
-    <div class="table-container">
-        <div class="p-4 bg-white border-bottom"><h5 class="fw-bold m-0"><i class="bi bi-inboxes text-primary me-2"></i> Dokumen Menunggu Pengesahan</h5></div>
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead><tr><th>Mahasiswa & Usulan Judul</th><th>Prodi</th><th>Status</th><th class="text-end">Tindakan</th></tr></thead>
-                <tbody>
-                    @forelse($pengajuanSk as $item)
-                        <tr>
-                            <td>
-                                <div class="fw-bold">{{ $item->nama_mahasiswa }} <span class="text-muted small">(NIM. {{ $item->nim }})</span></div>
-                                <div class="text-muted small">"{{ $item->judul_skripsi }}"</div>
-                            </td>
-                            <td>{{ $item->prodi }}</td>
-                            <td><span class="badge bg-primary-subtle text-primary rounded-pill">Butuh ACC Anda</span></td>
-                            <td class="text-end">
-                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalWadek{{ $item->id }}">
-                                    <i class="bi bi-shield-check"></i> Tinjau
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Modal (Letakkan di sini sesuai contoh sebelumnya) -->
-                    @empty
-                        <tr><td colspan="4" class="text-center py-5">Tidak ada dokumen menunggu.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <div class="tab-content" id="wadekTabsContent">
+
+        <div class="tab-pane fade show active" id="pembimbing" role="tabpanel">
+            <div class="table-container border-top-0">
+                <div class="p-4 bg-white border-bottom d-flex align-items-center justify-content-between rounded-top">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-list-task me-2 text-success"></i> Antrean SK
+                        Pembimbing</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 bg-white">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Mahasiswa (Pembimbing)</th>
+                                <th>Program Studi</th>
+                                <th>Tanggal Diajukan</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pengajuanSkPembimbing as $item)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="user-avatar bg-success-subtle text-success fw-bold">
+                                                {{ substr($item->nama_mahasiswa, 0, 2) }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark mb-0">{{ $item->nama_mahasiswa }}</div>
+                                                <small class="text-muted">NIM. {{ $item->nim }}</small>
+
+                                                @if ($item->pembimbing1)
+                                                    <div class="mt-1 text-success"
+                                                        style="font-size: 12px; font-weight: 500;">
+                                                        <i class="bi bi-person-badge-fill"></i> P1:
+                                                        {{ $item->pembimbing1->nama_dosen ?? ($item->pembimbing1->nama ?? $item->pembimbing1->name) }}
+                                                        <span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->pembimbing1->bebanDuaMinggu() }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                @if ($item->pembimbing2)
+                                                    <div class="text-primary" style="font-size: 12px; font-weight: 500;">
+                                                        <i class="bi bi-person-badge"></i> P2:
+                                                        {{ $item->pembimbing2->nama_dosen ?? ($item->pembimbing2->nama ?? $item->pembimbing2->name) }}
+                                                        <span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->pembimbing2->bebanDuaMinggu() }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium text-dark">{{ $item->prodi }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            {{ $item->created_at->format('d M Y') }}
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-success btn-action shadow-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalProsesPembimbing{{ $item->id }}">
+                                            <i class="bi bi-check-circle me-1"></i> Proses ACC
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        <i class="bi bi-folder-check d-block fs-2 mb-2 text-black-50"></i> Belum ada antrean
+                                        SK Pembimbing.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-center mt-4 mb-4">
+                {{ $pengajuanSkPembimbing->links('pagination::bootstrap-5') }}
+            </div>
         </div>
+
+        <div class="tab-pane fade" id="penguji" role="tabpanel">
+            <div class="table-container border-top-0">
+                <div class="p-4 bg-white border-bottom d-flex align-items-center justify-content-between rounded-top">
+                    <h5 class="fw-bold text-dark m-0"><i class="bi bi-list-task me-2 text-primary"></i> Antrean SK Ujian
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 bg-white">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Mahasiswa (Penguji)</th>
+                                <th>Program Studi</th>
+                                <th>Tanggal Diajukan</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pengajuanSkUjian as $item)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="user-avatar bg-primary-subtle text-primary fw-bold">
+                                                {{ substr($item->nama_mahasiswa, 0, 2) }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark mb-0">{{ $item->nama_mahasiswa }}</div>
+                                                <small class="text-muted">NIM. {{ $item->nim }} |
+                                                    {{ ucfirst($item->jenis_ujian) }}</small>
+
+                                                <div class="mt-1 d-flex flex-column gap-1"
+                                                    style="font-size: 12px; font-weight: 500;">
+                                                    @if ($item->ketuaPenguji)
+                                                        <span class="text-danger"><i class="bi bi-person-badge-fill"></i>
+                                                            Ketua:
+                                                            {{ $item->ketuaPenguji->nama_dosen ?? ($item->ketuaPenguji->nama ?? $item->ketuaPenguji->name) }}</span>
+                                                    @endif
+                                                    @if ($item->sekretaris)
+                                                        <span class="text-warning text-darken"><i
+                                                                class="bi bi-person-badge"></i> Sek:
+                                                            {{ $item->sekretaris->nama_dosen ?? ($item->sekretaris->nama ?? $item->sekretaris->name) }}</span>
+                                                    @endif
+                                                    @if ($item->anggota1)
+                                                        <span class="text-primary"><i class="bi bi-person"></i> A1:
+                                                            {{ $item->anggota1->nama_dosen ?? ($item->anggota1->nama ?? $item->anggota1->name) }}</span>
+                                                    @endif
+                                                    @if ($item->anggota2)
+                                                        <span class="text-info text-darken"><i class="bi bi-person"></i> A2:
+                                                            {{ $item->anggota2->nama_dosen ?? ($item->anggota2->nama ?? $item->anggota2->name) }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium text-dark">{{ $item->prodi }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            {{ $item->created_at->format('d M Y') }}
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-primary btn-action shadow-sm"
+                                            data-bs-toggle="modal" data-bs-target="#modalProsesPenguji{{ $item->id }}">
+                                            <i class="bi bi-check-circle me-1"></i> Proses ACC
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        <i class="bi bi-folder-check d-block fs-2 mb-2 text-black-50"></i> Belum ada
+                                        antrean
+                                        SK Ujian.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-center mt-4 mb-4">
+                {{ $pengajuanSkUjian->links('pagination::bootstrap-5') }}
+            </div>
+        </div>
+
     </div>
+
+    {{-- 1. Modal Proses ACC Pembimbing --}}
+    @foreach ($pengajuanSkPembimbing as $item)
+        <div class="modal fade" id="modalProsesPembimbing{{ $item->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg text-start">
+                <div class="modal-content rounded-4 shadow">
+                    <form action="{{ route('validasi.sk-pembimbing.wadek', $item->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold text-dark"><i
+                                    class="bi bi-person-check-fill text-success me-2"></i>Validasi Pembimbing</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <div
+                                class="d-flex justify-content-between align-items-start p-3 bg-light border rounded-3 mb-4">
+                                <div>
+                                    <p class="mb-1 text-dark"><strong>Mahasiswa:</strong> {{ $item->nama_mahasiswa }}
+                                        ({{ $item->nim }})</p>
+                                    <p class="mb-0 text-muted" style="font-size: 14px;"><strong>Judul:</strong>
+                                        "{{ $item->judul_skripsi }}"</p>
+                                </div>
+                                <div class="ms-3 text-end">
+                                    @if ($item->path_file_syarat)
+                                        <a href="{{ asset('storage/' . $item->path_file_syarat) }}" target="_blank"
+                                            class="btn btn-sm btn-danger shadow-sm text-nowrap">
+                                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cek Berkas
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info border-0 rounded-3 small">
+                                <i class="bi bi-info-circle-fill me-2"></i> Wadek 1 dapat menyesuaikan formasi dosen
+                                sebelum mengesahkan dokumen.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Pembimbing Utama
+                                    (P1)</label>
+                                <select name="pembimbing_1_id" class="form-select rounded-3 py-2" required>
+                                    <option value="">-- Pilih Dosen --</option>
+                                    @foreach ($listDosen as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ isset($item->pembimbing_1_id) && $item->pembimbing_1_id == $dosen->id ? 'selected' : '' }}>
+                                            {{ $dosen->nama_dosen ?? ($dosen->nama ?? $dosen->name) }}
+                                            {{ $dosen->bebanDuaMinggu() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Pembimbing Pendamping
+                                    (P2)</label>
+                                <select name="pembimbing_2_id" class="form-select rounded-3 py-2" required>
+                                    <option value="">-- Pilih Dosen --</option>
+                                    @foreach ($listDosen as $dosen)
+                                        <option value="{{ $dosen->id }}"
+                                            {{ isset($item->pembimbing_2_id) && $item->pembimbing_2_id == $dosen->id ? 'selected' : '' }}>
+                                            {{ $dosen->nama_dosen ?? ($dosen->nama ?? $dosen->name) }}
+                                            {{ $dosen->bebanDuaMinggu() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 justify-content-between">
+                            <button type="button" class="btn btn-outline-danger rounded-3 fw-semibold px-4"
+                                data-bs-toggle="modal" data-bs-target="#modalTolakPembimbing{{ $item->id }}">
+                                Tolak / Kembalikan
+                            </button>
+                            <div>
+                                <button type="button" class="btn btn-light rounded-3 fw-semibold px-4"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-success rounded-3 fw-semibold px-4">ACC & Siap
+                                    Cetak</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Sub-Modal Tolak Pembimbing --}}
+        <div class="modal fade" id="modalTolakPembimbing{{ $item->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content rounded-4">
+                    <form action="{{ route('validasi.sk-pembimbing.tolak', $item->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold text-danger"><i class="bi bi-x-circle-fill me-2"></i>Kembalikan ke Admin
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <label class="form-label fw-bold">Catatan Penolakan / Revisi:</label>
+                            <textarea name="catatan_penolakan" class="form-control rounded-3" rows="3" required
+                                placeholder="Contoh: Formasi dosen ini sudah penuh, tolong ganti dosen pembimbing 2..."></textarea>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-3"
+                                data-bs-target="#modalProsesPembimbing{{ $item->id }}"
+                                data-bs-toggle="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger rounded-3">Kirim Catatan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- 2. Modal Proses ACC Penguji --}}
+    @foreach ($pengajuanSkUjian as $item)
+        <div class="modal fade" id="modalProsesPenguji{{ $item->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg text-start">
+                <div class="modal-content rounded-4 shadow">
+                    {{-- Pastikan Anda sudah membuat Route validasi.sk-ujian.wadek di routes/web.php --}}
+                    <form action="{{ route('validasi.sk-ujian.wadek', $item->id) ?? '#' }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold text-dark"><i
+                                    class="bi bi-person-check-fill text-primary me-2"></i>Validasi Penguji Ujian</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-4">
+                            <div
+                                class="d-flex justify-content-between align-items-start p-3 bg-light border rounded-3 mb-4">
+                                <div>
+                                    <p class="mb-1 text-dark"><strong>Mahasiswa:</strong> {{ $item->nama_mahasiswa }}
+                                        ({{ $item->nim }})
+                                    </p>
+                                    <p class="mb-0 text-muted" style="font-size: 14px;"><strong>Ujian:</strong>
+                                        {{ ucfirst($item->jenis_ujian) }}</p>
+                                </div>
+                                <div class="ms-3 text-end">
+                                    @if ($item->path_file_syarat)
+                                        <a href="{{ asset('storage/' . $item->path_file_syarat) }}" target="_blank"
+                                            class="btn btn-sm btn-danger shadow-sm text-nowrap">
+                                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cek Berkas
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <p class="fw-bold small text-muted text-uppercase mb-2">Formasi Penguji yang diajukan Prodi:
+                            </p>
+                            <ul class="list-group list-group-flush border rounded-3">
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                    <span><i class="bi bi-person-badge-fill text-danger me-2"></i>Ketua Penguji</span>
+                                    <span
+                                        class="fw-bold">{{ $item->ketuaPenguji->nama_dosen ?? ($item->ketuaPenguji->nama ?? $item->ketuaPenguji->name) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                    <span><i class="bi bi-person-badge text-warning me-2"></i>Sekretaris</span>
+                                    <span
+                                        class="fw-bold">{{ $item->sekretaris->nama_dosen ?? ($item->sekretaris->nama ?? $item->sekretaris->name) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                    <span><i class="bi bi-person text-primary me-2"></i>Anggota Penguji 1</span>
+                                    <span
+                                        class="fw-bold">{{ $item->anggota1->nama_dosen ?? ($item->anggota1->nama ?? $item->anggota1->name) }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                                    <span><i class="bi bi-person text-info me-2"></i>Anggota Penguji 2</span>
+                                    <span
+                                        class="fw-bold">{{ $item->anggota2->nama_dosen ?? ($item->anggota2->nama ?? $item->anggota2->name) }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 justify-content-end">
+                            <button type="button" class="btn btn-light rounded-3 fw-semibold px-4"
+                                data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">ACC & Siap
+                                Cetak</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
 @endsection

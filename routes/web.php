@@ -26,31 +26,36 @@ Route::get('/', [PortalMahasiswaController::class, 'index'])->name('portal.index
 // ==========================================
 // GRUP PANEL INTERNAL KAMPUS (PREFIKS: /febi)
 // ==========================================
+// ==========================================
+// GRUP PANEL INTERNAL KAMPUS (PREFIKS: /febi)
+// ==========================================
 Route::prefix('febi')->group(function () {
 
-    // 1. Jalur Autentikasi Publik Internal (Bisa diakses sebelum login)
+    // 1. Jalur Autentikasi (Bisa diakses sebelum login)
     Route::get('/login', [FebiAuthController::class, 'showLogin'])->name('febi.login');
     Route::post('/login', [FebiAuthController::class, 'login'])->name('febi.login.proses');
     Route::post('/logout', [FebiAuthController::class, 'logout'])->name('febi.logout');
 
+    // 2. Jalur Terlindungi (Wajib Login & Peran Admin/Wadek)
     Route::middleware(['auth', 'cek_peran:admin_prodi,wadek_1'])->group(function () {
 
-        // Mengarahkan ke InternalDashboardController
+        // Halaman Dashboard Utama
         Route::get('/dashboard', [InternalDashboardController::class, 'index'])->name('internal.dashboard');
-        // Fitur Hapus Pengajuan oleh Admin Prodi
-        Route::delete('/pengajuan-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'hapusPengajuan'])->name('internal.pengajuan.destroy');
-        // Tambahkan di dalam route group yang sama
-        Route::patch('/tolak-sk-pembimbing/{id}', [\App\Http\Controllers\InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
 
-        // Rute untuk Monitoring Data Dosen (Bisa diakses Admin & Wadek)
-        Route::get('/internal/dosen', [App\Http\Controllers\InternalDashboardController::class, 'monitoringDosen'])
-            ->name('internal.dosen.monitoring')
-            ->middleware(['auth']);
+        // Halaman Riwayat Validasi Wadek 1
+        Route::get('/wadek/riwayat', [InternalDashboardController::class, 'riwayatWadek'])->name('internal.wadek.riwayat');
+
+        // Monitoring Data Dosen
+        Route::get('/internal/dosen', [InternalDashboardController::class, 'monitoringDosen'])->name('internal.dosen.monitoring');
+
+        // Aksi Kelola Pengajuan (Hapus, Prodi, Wadek, Tolak)
+        Route::delete('/pengajuan-sk-pembimbing/{id}', [InternalDashboardController::class, 'hapusPengajuan'])->name('internal.pengajuan.destroy');
+        Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
+        Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
+        Route::patch('/tolak-sk-pembimbing/{id}', [InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
+
+        // Note: Jika Anda punya fungsi ACC SK Ujian, pastikan ditaruh di sini juga. Contoh:
+        // Route::patch('/validasi-sk-ujian/wadek/{id}', [InternalDashboardController::class, 'prosesUjianWadek'])->name('validasi.sk-ujian.wadek');
+
     });
-
-    // Tambahkan di dalam Route::prefix('febi')->middleware(...) grup
-    Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
-    Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
-    // Tambahkan baris ini di routes/web.php
-    Route::get('/wadek/riwayat', [\App\Http\Controllers\InternalDashboardController::class, 'riwayatWadek'])->name('wadek.riwayat');
 });
