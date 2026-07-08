@@ -165,20 +165,33 @@
                                                     @if ($item->ketuaPenguji)
                                                         <span class="text-danger"><i class="bi bi-person-badge-fill"></i>
                                                             Ketua:
-                                                            {{ $item->ketuaPenguji->nama_dosen ?? ($item->ketuaPenguji->nama ?? $item->ketuaPenguji->name) }}</span>
+                                                            {{ $item->ketuaPenguji->nama_dosen ?? ($item->ketuaPenguji->nama ?? $item->ketuaPenguji->name) }}
+                                                            <span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->ketuaPenguji->bebanDuaMinggu() }}
+                                                        </span></span>
                                                     @endif
                                                     @if ($item->sekretaris)
                                                         <span class="text-warning text-darken"><i
                                                                 class="bi bi-person-badge"></i> Sek:
-                                                            {{ $item->sekretaris->nama_dosen ?? ($item->sekretaris->nama ?? $item->sekretaris->name) }}</span>
+                                                            {{ $item->sekretaris->nama_dosen ?? ($item->sekretaris->nama ?? $item->sekretaris->name) }}<span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->sekretaris->bebanDuaMinggu() }}
+                                                        </span></span>
                                                     @endif
                                                     @if ($item->anggota1)
                                                         <span class="text-primary"><i class="bi bi-person"></i> A1:
-                                                            {{ $item->anggota1->nama_dosen ?? ($item->anggota1->nama ?? $item->anggota1->name) }}</span>
+                                                            {{ $item->anggota1->nama_dosen ?? ($item->anggota1->nama ?? $item->anggota1->name) }}<span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->anggota1->bebanDuaMinggu() }}
+                                                        </span></span>
                                                     @endif
                                                     @if ($item->anggota2)
                                                         <span class="text-info text-darken"><i class="bi bi-person"></i> A2:
-                                                            {{ $item->anggota2->nama_dosen ?? ($item->anggota2->nama ?? $item->anggota2->name) }}</span>
+                                                            {{ $item->anggota2->nama_dosen ?? ($item->anggota2->nama ?? $item->anggota2->name) }}<span class="badge bg-secondary-subtle text-secondary ms-1"
+                                                            style="font-size: 9px;">
+                                                            {{ $item->anggota2->bebanDuaMinggu() }}
+                                                        </span></span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -203,7 +216,8 @@
                                     </td>
                                     <td class="text-end">
                                         <button type="button" class="btn btn-primary btn-action shadow-sm"
-                                            data-bs-toggle="modal" data-bs-target="#modalProsesPenguji{{ $item->id }}">
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalProsesPenguji{{ $item->id }}">
                                             <i class="bi bi-check-circle me-1"></i> Proses ACC
                                         </button>
                                     </td>
@@ -345,74 +359,100 @@
 
     {{-- 2. Modal Proses ACC Penguji --}}
     @foreach ($pengajuanSkUjian as $item)
-        <div class="modal fade" id="modalProsesPenguji{{ $item->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg text-start">
-                <div class="modal-content rounded-4 shadow">
-                    {{-- Pastikan Anda sudah membuat Route validasi.sk-ujian.wadek di routes/web.php --}}
-                    <form action="{{ route('validasi.sk-ujian.wadek', $item->id) ?? '#' }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <div class="modal-header border-0 pb-0">
-                            <h5 class="fw-bold text-dark"><i
-                                    class="bi bi-person-check-fill text-primary me-2"></i>Validasi Penguji Ujian</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body py-4">
-                            <div
-                                class="d-flex justify-content-between align-items-start p-3 bg-light border rounded-3 mb-4">
-                                <div>
-                                    <p class="mb-1 text-dark"><strong>Mahasiswa:</strong> {{ $item->nama_mahasiswa }}
-                                        ({{ $item->nim }})
-                                    </p>
-                                    <p class="mb-0 text-muted" style="font-size: 14px;"><strong>Ujian:</strong>
-                                        {{ ucfirst($item->jenis_ujian) }}</p>
-                                </div>
-                                <div class="ms-3 text-end">
-                                    @if ($item->path_file_syarat)
-                                        <a href="{{ asset('storage/' . $item->path_file_syarat) }}" target="_blank"
-                                            class="btn btn-sm btn-danger shadow-sm text-nowrap">
-                                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cek Berkas
-                                        </a>
-                                    @endif
-                                </div>
+        @if ($item->status == 'diajukan')
+            <div class="modal fade" id="modalProdiPenguji{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg text-start">
+                    <div class="modal-content rounded-4 shadow">
+                        <form action="{{ route('validasi.sk-ujian.prodi', $item->id) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="fw-bold text-dark">
+                                    <i class="bi bi-person-plus-fill text-primary me-2"></i>Tentukan Penguji
+                                    ({{ $tab['title'] }})
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
+                            <div class="modal-body py-4">
+                                <div
+                                    class="d-flex justify-content-between align-items-start p-3 bg-light border rounded-3 mb-4">
+                                    <div>
+                                        <p class="mb-1 text-dark"><strong>Mahasiswa:</strong> {{ $item->nama_mahasiswa }}
+                                            ({{ $item->nim }})</p>
+                                        <p class="mb-0 text-muted" style="font-size: 14px;"><strong>Judul:</strong>
+                                            "{{ $item->judul_skripsi }}"</p>
+                                    </div>
+                                </div>
 
-                            <p class="fw-bold small text-muted text-uppercase mb-2">Formasi Penguji yang diajukan Prodi:
-                            </p>
-                            <ul class="list-group list-group-flush border rounded-3">
-                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                    <span><i class="bi bi-person-badge-fill text-danger me-2"></i>Ketua Penguji</span>
-                                    <span
-                                        class="fw-bold">{{ $item->ketuaPenguji->nama_dosen ?? ($item->ketuaPenguji->nama ?? $item->ketuaPenguji->name) }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                    <span><i class="bi bi-person-badge text-warning me-2"></i>Sekretaris</span>
-                                    <span
-                                        class="fw-bold">{{ $item->sekretaris->nama_dosen ?? ($item->sekretaris->nama ?? $item->sekretaris->name) }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                    <span><i class="bi bi-person text-primary me-2"></i>Anggota Penguji 1</span>
-                                    <span
-                                        class="fw-bold">{{ $item->anggota1->nama_dosen ?? ($item->anggota1->nama ?? $item->anggota1->name) }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
-                                    <span><i class="bi bi-person text-info me-2"></i>Anggota Penguji 2</span>
-                                    <span
-                                        class="fw-bold">{{ $item->anggota2->nama_dosen ?? ($item->anggota2->nama ?? $item->anggota2->name) }}</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="modal-footer border-0 pt-0 justify-content-end">
-                            <button type="button" class="btn btn-light rounded-3 fw-semibold px-4"
-                                data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">ACC & Siap
-                                Cetak</button>
-                        </div>
-                    </form>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Ketua Penguji</label>
+                                    <select name="ketua_penguji_id" class="form-select rounded-3 py-2" required>
+                                        <option value="">-- Pilih Ketua Penguji --</option>
+                                        @foreach ($listDosen as $dosen)
+                                            <option value="{{ $dosen->id }}"
+                                                {{ $item->ketua_penguji_id == $dosen->id ? 'selected' : '' }}>
+                                                {{ $dosen->nama_dosen ?? $dosen->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Sekretaris
+                                        Penguji</label>
+                                    <select name="sekretaris_id" class="form-select rounded-3 py-2" required>
+                                        <option value="">-- Pilih Sekretaris --</option>
+                                        @foreach ($listDosen as $dosen)
+                                            <option value="{{ $dosen->id }}"
+                                                {{ $item->sekretaris_id == $dosen->id ? 'selected' : '' }}>
+                                                {{ $dosen->nama_dosen ?? $dosen->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase">Anggota Penguji
+                                        1</label>
+                                    <select name="anggota_1_id" class="form-select rounded-3 py-2" required>
+                                        <option value="">-- Pilih Anggota 1 --</option>
+                                        @foreach ($listDosen as $dosen)
+                                            <option value="{{ $dosen->id }}"
+                                                {{ $item->anggota_1_id == $dosen->id ? 'selected' : '' }}>
+                                                {{ $dosen->nama_dosen ?? $dosen->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                @if ($key != 'proposal')
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-muted text-uppercase">Anggota Penguji
+                                            2</label>
+                                        <select name="anggota_2_id" class="form-select rounded-3 py-2" required>
+                                            <option value="">-- Pilih Anggota 2 --</option>
+                                            @foreach ($listDosen as $dosen)
+                                                <option value="{{ $dosen->id }}"
+                                                    {{ $item->anggota_2_id == $dosen->id ? 'selected' : '' }}>
+                                                    {{ $dosen->nama_dosen ?? $dosen->nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-light rounded-3 fw-semibold px-4"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary rounded-3 fw-semibold px-4">Teruskan ke
+                                    Wadek 1</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     @endforeach
 
 @endsection

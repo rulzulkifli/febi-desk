@@ -20,33 +20,81 @@ class InternalDashboardController extends Controller
         $listDosen = \App\Models\Dosen::all();
 
         // 2. LOGIKA UNTUK ADMIN PRODI
+        // 2. LOGIKA UNTUK ADMIN PRODI
+        // 2. LOGIKA UNTUK ADMIN PRODI
         if ($user->peran == 'admin_prodi') {
 
-            // --- TAMBAHKAN 'programStudi' DI DALAM ARRAY WITH ---
             $queryPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2', 'programStudi'])->latest();
-            $queryUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])->latest();
+
+            // --- PECAH QUERY BERDASARKAN JENIS UJIAN ---
+            $queryUjianProposal = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+                ->where('jenis_ujian', 'proposal')->latest();
+            $queryUjianHasil    = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+                ->where('jenis_ujian', 'hasil')->latest();
+            $queryUjianSkripsi  = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+                ->where('jenis_ujian', 'skripsi')->latest();
 
             // Filter Status & Tanggal (Hanya untuk Admin)
             if ($request->filled('status')) {
                 $queryPembimbing->where('status', $request->status);
-                $queryUjian->where('status', $request->status);
+                $queryUjianProposal->where('status', $request->status);
+                $queryUjianHasil->where('status', $request->status);
+                $queryUjianSkripsi->where('status', $request->status);
             }
             if ($request->filled('tanggal')) {
                 $queryPembimbing->whereDate('created_at', $request->tanggal);
-                $queryUjian->whereDate('created_at', $request->tanggal);
+                $queryUjianProposal->whereDate('created_at', $request->tanggal);
+                $queryUjianHasil->whereDate('created_at', $request->tanggal);
+                $queryUjianSkripsi->whereDate('created_at', $request->tanggal);
             }
 
+            // --- HITUNG BADGE: KECUALIKAN STATUS 'siap_dicetak' DAN 'selesai' ---
+            $badgePembimbingCount = (clone $queryPembimbing)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
+            $badgeProposalCount   = (clone $queryUjianProposal)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
+            $badgeHasilCount      = (clone $queryUjianHasil)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
+            $badgeSkripsiCount    = (clone $queryUjianSkripsi)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
+
+            // Total Ujian aktif untuk badge utama
+            $totalUjian = $badgeProposalCount + $badgeHasilCount + $badgeSkripsiCount;
+
+            // Proses Pagination Data Tabel Utama
             $pengajuanSkPembimbing = $queryPembimbing->paginate(10, ['*'], 'page_pembimbing')->withQueryString();
-            $pengajuanSkUjian = $queryUjian->paginate(10, ['*'], 'page_ujian')->withQueryString();
+            $ujianProposal = $queryUjianProposal->paginate(10, ['*'], 'page_proposal')->withQueryString();
+            $ujianHasil    = $queryUjianHasil->paginate(10, ['*'], 'page_hasil')->withQueryString();
+            $ujianSkripsi  = $queryUjianSkripsi->paginate(10, ['*'], 'page_skripsi')->withQueryString();
 
             // Statistik Khusus Dashboard Admin
-            $menungguPengecekan = PengajuanSkPembimbing::where('status', 'diajukan')->count();
-            $butuhAccWadek = PengajuanSkPembimbing::where('status', 'persetujuan_wadek')->count();
-            $selesaiBulanIni = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
+            $menungguPengecekan = PengajuanSkPembimbing::where('status', 'diajukan')->count()
+                + \App\Models\PengajuanSkUjian::where('status', 'diajukan')->count();
+
+            $butuhAccWadek = PengajuanSkPembimbing::where('status', 'persetujuan_wadek')->count()
+                + \App\Models\PengajuanSkUjian::where('status', 'persetujuan_wadek')->count();
+
+            $selesaiPembimbing = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
                 ->whereMonth('updated_at', date('m'))
                 ->whereYear('updated_at', date('Y'))->count();
 
-            return view('internal.admin.dashboard', compact('pengajuanSkPembimbing', 'pengajuanSkUjian', 'listDosen', 'menungguPengecekan', 'butuhAccWadek', 'selesaiBulanIni'));
+            $selesaiUjian = \App\Models\PengajuanSkUjian::whereIn('status', ['siap_dicetak', 'selesai'])
+                ->whereMonth('updated_at', date('m'))
+                ->whereYear('updated_at', date('Y'))->count();
+
+            $selesaiBulanIni = $selesaiPembimbing + $selesaiUjian;
+
+            return view('internal.admin.dashboard', compact(
+                'pengajuanSkPembimbing',
+                'ujianProposal',
+                'ujianHasil',
+                'ujianSkripsi',
+                'badgePembimbingCount',
+                'badgeProposalCount',
+                'badgeHasilCount',
+                'badgeSkripsiCount',
+                'totalUjian',
+                'listDosen',
+                'menungguPengecekan',
+                'butuhAccWadek',
+                'selesaiBulanIni'
+            ));
 
             // 3. LOGIKA UNTUK WADEK 1
         } elseif ($user->peran == 'wadek_1') {
@@ -251,5 +299,47 @@ class InternalDashboardController extends Controller
         ]);
 
         return view('internal.dosen.monitoring', compact('dosenPaginated', 'startDate', 'endDate'));
+    }
+
+    // Proses Plotting Tim Penguji oleh Admin Prodi
+    // Proses Plotting Tim Penguji oleh Admin Prodi
+    public function prosesUjianProdi(Request $request, $id)
+    {
+        $pengajuan = \App\Models\PengajuanSkUjian::findOrFail($id);
+
+        // 1. Tambahkan validasi untuk tanggal dan waktu
+        $rules = [
+            'tanggal_ujian'    => 'required|date',
+            'waktu_ujian'      => 'required|string',
+            'ketua_penguji_id' => 'required|exists:dosen,id',
+            'sekretaris_id'    => 'required|exists:dosen,id',
+            'anggota_1_id'     => 'required|exists:dosen,id',
+        ];
+
+        if ($pengajuan->jenis_ujian !== 'proposal') {
+            $rules['anggota_2_id'] = 'required|exists:dosen,id|different:anggota_1_id';
+        }
+
+        $request->validate($rules);
+
+        // 2. Tambahkan field ke dalam array untuk disimpan ke database
+        $updateData = [
+            'tanggal_ujian'    => $request->tanggal_ujian,
+            'waktu_ujian'      => $request->waktu_ujian,
+            'ketua_penguji_id' => $request->ketua_penguji_id,
+            'sekretaris_id'    => $request->sekretaris_id,
+            'anggota_1_id'     => $request->anggota_1_id,
+            'status'           => 'persetujuan_wadek'
+        ];
+
+        if ($pengajuan->jenis_ujian !== 'proposal') {
+            $updateData['anggota_2_id'] = $request->anggota_2_id;
+        } else {
+            $updateData['anggota_2_id'] = null;
+        }
+
+        $pengajuan->update($updateData);
+
+        return redirect()->back()->with('success', 'Jadwal dan Formasi tim penguji berhasil disimpan serta diteruskan ke Wadek 1.');
     }
 }

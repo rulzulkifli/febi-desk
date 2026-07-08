@@ -56,6 +56,8 @@ Route::prefix('febi')->group(function () {
         Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
         Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
         Route::patch('/tolak-sk-pembimbing/{id}', [InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
+        // Letakkan di dalam Route::middleware(['auth', 'cek_peran:admin_prodi,wadek_1'])->group(...)
+        Route::patch('/validasi-sk-ujian/prodi/{id}', [InternalDashboardController::class, 'prosesUjianProdi'])->name('validasi.sk-ujian.prodi');
 
         // Note: Jika Anda punya fungsi ACC SK Ujian, pastikan ditaruh di sini juga. Contoh:
         // Route::patch('/validasi-sk-ujian/wadek/{id}', [InternalDashboardController::class, 'prosesUjianWadek'])->name('validasi.sk-ujian.wadek');
