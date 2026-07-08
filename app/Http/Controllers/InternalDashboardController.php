@@ -48,11 +48,11 @@ class InternalDashboardController extends Controller
                 $queryUjianSkripsi->whereDate('created_at', $request->tanggal);
             }
 
-            // --- HITUNG BADGE: KECUALIKAN STATUS 'siap_dicetak' DAN 'selesai' ---
-            $badgePembimbingCount = (clone $queryPembimbing)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
-            $badgeProposalCount   = (clone $queryUjianProposal)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
-            $badgeHasilCount      = (clone $queryUjianHasil)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
-            $badgeSkripsiCount    = (clone $queryUjianSkripsi)->whereNotIn('status', ['siap_dicetak', 'selesai'])->count();
+            // --- HITUNG BADGE: HANYA STATUS 'diajukan' (YANG BUTUH TINDAKAN ADMIN PRODI) ---
+            $badgePembimbingCount = (clone $queryPembimbing)->where('status', 'diajukan')->count();
+            $badgeProposalCount   = (clone $queryUjianProposal)->where('status', 'diajukan')->count();
+            $badgeHasilCount      = (clone $queryUjianHasil)->where('status', 'diajukan')->count();
+            $badgeSkripsiCount    = (clone $queryUjianSkripsi)->where('status', 'diajukan')->count();
 
             // Total Ujian aktif untuk badge utama
             $totalUjian = $badgeProposalCount + $badgeHasilCount + $badgeSkripsiCount;
