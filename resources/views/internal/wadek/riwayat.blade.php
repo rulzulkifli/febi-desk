@@ -78,7 +78,11 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $item->prodi }}</td>
+                                    <td>
+                                        <div class="fw-medium text-dark">
+                                            {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
+                                        </div>
+                                    </td>
                                     <td>
                                         @if($item->status == 'siap_dicetak')
                                             <span class="badge bg-info-subtle text-info fw-semibold px-3 py-2 rounded-pill">Siap Dicetak Admin</span>
@@ -141,7 +145,11 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ ucfirst($item->jenis_ujian) }} <br><small class="text-muted">{{ $item->prodi }}</small></td>
+                                    <td>
+                                        <div class="fw-medium text-dark">
+                                            {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
+                                        </div>
+                                    </td>
                                     <td>
                                         @if($item->status == 'siap_dicetak')
                                             <span class="badge bg-info-subtle text-info fw-semibold px-3 py-2 rounded-pill">Siap Dicetak Admin</span>

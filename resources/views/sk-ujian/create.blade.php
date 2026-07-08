@@ -96,7 +96,7 @@
                     @csrf
 
                     <div class="row g-4 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="nim" class="form-label fw-semibold text-secondary">Nomor Induk Mahasiswa
                                 (NIM)</label>
                             <div class="input-group">
@@ -111,11 +111,18 @@
                             <div id="alertContainer" class="mt-2"></div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="nama_mahasiswa" class="form-label fw-semibold text-secondary">Nama
                                 Lengkap</label>
                             <input type="text" id="nama_mahasiswa" name="nama_mahasiswa"
                                 class="form-control bg-light" placeholder="Akan terisi otomatis..." required readonly>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="no_hp" class="form-label fw-semibold text-secondary">No. HP /
+                                WhatsApp</label>
+                            <input type="text" id="no_hp" name="no_hp" class="form-control bg-light"
+                                placeholder="Akan terisi otomatis..." required readonly>
                         </div>
                     </div>
 
@@ -157,8 +164,8 @@
                                     Punya</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="has_physical" id="physicalTidak"
-                                    value="tidak">
+                                <input class="form-check-input" type="radio" name="has_physical"
+                                    id="physicalTidak" value="tidak">
                                 <label class="form-check-label fw-medium text-dark" for="physicalTidak">Tidak
                                     Punya</label>
                             </div>
@@ -213,6 +220,7 @@
                                 <label for="jenis_ujian" class="form-label fw-semibold text-secondary">Jenis
                                     Ujian</label>
                                 <select id="jenis_ujian" name="jenis_ujian" class="form-select" required>
+                                    <option value="" selected disabled>-- Pilih Jenis Ujian --</option>
                                     <option value="proposal">Ujian Proposal Penelitian</option>
                                     <option value="hasil">Ujian Hasil Penelitian</option>
                                     <option value="skripsi">Ujian Sidang Skripsi</option>
@@ -299,11 +307,14 @@
 
                         if (res.status === 'success') {
                             // SKENARIO A: Data Ditemukan di Sistem
-                            // Opsional: Tampilkan alert kecil jika sukses (bisa dihapus jika dirasa mengganggu)
-                            // alert(res.message); 
-
-                            // Isi data otomatis dari response JSON
                             $('#nama_mahasiswa').val(res.data.nama_mahasiswa);
+
+                            // Isi otomatis No HP dan kunci inputnya (Readonly)
+                            $('#no_hp').val(res.data.no_hp)
+                                .prop('readonly', true)
+                                .addClass('bg-light')
+                                .attr('placeholder', 'Terisi otomatis...');
+
                             $('#pembimbing1_nama').val(res.data.pembimbing_1_nama);
                             $('#pembimbing1_id').val(res.data.pembimbing_1_id);
                             $('#pembimbing2_nama').val(res.data.pembimbing_2_nama);
@@ -333,9 +344,15 @@
                                             `;
                             $('#alertContainer').html(alertHtml);
 
-                            // Reset form agar tidak ada data sisa
+                            // Reset form nama mahasiswa
                             $('#nama_mahasiswa').val('');
                             $('.js-conditional').slideUp();
+
+                            // Buka field No HP agar mahasiswa bisa ketik manual
+                            $('#no_hp').val('')
+                                .prop('readonly', false)
+                                .removeClass('bg-light')
+                                .attr('placeholder', 'Masukkan No. HP/WhatsApp...');
 
                             // Kosongkan nama & data pembimbing untuk menghindari sisa data sebelumnya
                             $('#pembimbing1_nama').val('');
@@ -364,7 +381,7 @@
                 });
             });
 
-            // 2. Event Handler Radio Button Jalur Transisi (Sama seperti kode asli Anda)
+            // 2. Event Handler Radio Button Jalur Transisi
             $('input[name="has_physical"]').on('change', function() {
                 let value = $(this).val();
 

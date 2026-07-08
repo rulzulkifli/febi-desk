@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('prodi');
             $table->text('judul_skripsi');
             $table->string('path_file_syarat')->nullable();
+            $table->string('no_hp');
 
             // Hanya ada dosen pembimbing
             $table->foreignId('pembimbing_1_id')->nullable()->constrained('dosen')->nullOnDelete();

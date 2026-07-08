@@ -47,6 +47,7 @@
                                 <th>Mahasiswa (Pembimbing)</th>
                                 <th>Program Studi</th>
                                 <th>Tanggal Diajukan</th>
+                                <th>No HP</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -87,13 +88,21 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="fw-medium text-dark">{{ $item->prodi }}</div>
+                                        <div class="fw-medium text-dark">
+                                            {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="text-muted small">
                                             <i class="bi bi-calendar-event me-1"></i>
                                             {{ $item->created_at->format('d M Y') }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', $item->no_hp) }}"
+                                            target="_blank" class="text-success text-decoration-none">
+                                            <i class="bi bi-whatsapp"></i> {{ $item->no_hp }}
+                                        </a>
                                     </td>
                                     <td class="text-end">
                                         <button type="button" class="btn btn-success btn-action shadow-sm"
@@ -134,6 +143,7 @@
                                 <th>Mahasiswa (Penguji)</th>
                                 <th>Program Studi</th>
                                 <th>Tanggal Diajukan</th>
+                                <th>No HP</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -175,13 +185,21 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="fw-medium text-dark">{{ $item->prodi }}</div>
+                                        <div class="fw-medium text-dark">
+                                            {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="text-muted small">
                                             <i class="bi bi-calendar-event me-1"></i>
                                             {{ $item->created_at->format('d M Y') }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', $item->no_hp) }}"
+                                            target="_blank" class="text-success text-decoration-none">
+                                            <i class="bi bi-whatsapp"></i> {{ $item->no_hp }}
+                                        </a>
                                     </td>
                                     <td class="text-end">
                                         <button type="button" class="btn btn-primary btn-action shadow-sm"

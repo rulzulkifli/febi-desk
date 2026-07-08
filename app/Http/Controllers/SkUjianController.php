@@ -39,6 +39,7 @@ class SkUjianController extends Controller
                     'pembimbing_2_id' => $skPembimbing->pembimbing_2_id,
                     'prodi' => $skPembimbing->prodi,
                     'pembimbing_2_nama' => $skPembimbing->pembimbing2->nama_dosen ?? 'Nama Tidak Ditemukan',
+                    'no_hp' => $skPembimbing->no_hp ?? 'Nama Tidak Ditemukan',
                 ]
             ]);
         }
@@ -58,6 +59,7 @@ class SkUjianController extends Controller
             'prodi' => 'required|string',
             'jenis_ujian' => 'required|in:proposal,hasil,skripsi',
             'judul_skripsi' => 'required|string',
+            'no_hp' => 'required|string',
         ]);
 
         $pembimbing1Id = $request->pembimbing_1_id;
@@ -87,6 +89,7 @@ class SkUjianController extends Controller
             'prodi' => $request->prodi,
             'jenis_ujian' => $request->jenis_ujian,
             'judul_skripsi' => $request->judul_skripsi,
+            'no_hp' => $request->no_hp,
 
             // --- BAGIAN OTOMATIS & ADMIN ---
             'tanggal_ujian' => null, // Dikosongkan agar diisi Admin Prodi

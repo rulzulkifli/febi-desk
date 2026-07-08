@@ -15,6 +15,7 @@ class PengajuanSkUjian extends Model
         'prodi',
         'jenis_ujian',
         'judul_skripsi',
+        'no_hp',
         'tanggal_ujian',
         'waktu_ujian',
         'ruangan_ujian',

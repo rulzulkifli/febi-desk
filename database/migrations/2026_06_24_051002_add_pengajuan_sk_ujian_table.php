@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('prodi');
             $table->enum('jenis_ujian', ['proposal', 'hasil', 'skripsi']);
             $table->text('judul_skripsi');
+            $table->string('no_hp');
             // Data Waktu & Tempat Ujian
             $table->date('tanggal_ujian')->nullable();
             $table->string('waktu_ujian')->nullable();

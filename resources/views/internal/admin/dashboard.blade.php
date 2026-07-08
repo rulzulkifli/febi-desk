@@ -105,6 +105,7 @@
                             <tr>
                                 <th>Mahasiswa</th>
                                 <th>Program Studi</th>
+                                <th>No HP</th>
                                 <th>Status</th>
                                 <th class="text-end">Tindakan Admin</th>
                             </tr>
@@ -150,8 +151,14 @@
                                     </td>
                                     <td>
                                         <div class="fw-medium text-dark">
-                                                {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
+                                            {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', $item->no_hp) }}"
+                                            target="_blank" class="text-success text-decoration-none">
+                                            <i class="bi bi-whatsapp"></i> {{ $item->no_hp }}
+                                        </a>
                                     </td>
                                     <td>
                                         @if ($item->status == 'diajukan')
@@ -198,7 +205,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-5"><i
+                                    <td colspan="5" class="text-center text-muted py-5"><i
                                             class="bi bi-folder-x d-block fs-2 mb-2 text-black-50"></i> Belum ada antrean
                                         SK Pembimbing.</td>
                                 </tr>
@@ -220,6 +227,7 @@
                             <tr>
                                 <th>Mahasiswa (Ujian)</th>
                                 <th>Program Studi</th>
+                                <th>No HP</th>
                                 <th>Status</th>
                                 <th class="text-end">Tindakan Admin</th>
                             </tr>
@@ -243,6 +251,12 @@
                                         <div class="fw-medium text-dark">
                                             {{ $item->programStudi->nama_prodi ?? 'Tidak Diketahui' }}
                                         </div>
+                                    </td>
+                                    <td>
+                                        <a href="https://wa.me/{{ preg_replace('/^0/', '62', $item->no_hp) }}"
+                                            target="_blank" class="text-success text-decoration-none">
+                                            <i class="bi bi-whatsapp"></i> {{ $item->no_hp }}
+                                        </a>
                                     </td>
                                     <td>
                                         @if ($item->status == 'diajukan')
@@ -283,9 +297,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted py-5"><i
+                                    <td colspan="5" class="text-center text-muted py-5"><i
                                             class="bi bi-folder-x d-block fs-2 mb-2 text-black-50"></i> Belum ada antrean
-                                        SK Ujian.</td>
                                 </tr>
                             @endforelse
                         </tbody>

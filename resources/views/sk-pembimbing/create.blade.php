@@ -122,17 +122,23 @@
                                         placeholder="Masukkan nama sesuai KTM..." required>
                                 </div>
                             </div>
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6"> <label for="prodi"
+                                        class="form-label fw-semibold text-secondary">Program Studi</label>
+                                    <select id="prodi" name="prodi" class="form-select" required>
+                                        <option value="">-- Pilih Program Studi --</option>
+                                        @foreach ($prodis as $prodi)
+                                            <option value="{{ $prodi->id }}">{{ $prodi->nama_prodi }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            <div class="col-md-6 mb-3"> <label for="prodi"
-                                    class="form-label fw-semibold text-secondary">Program Studi</label>
-                                <select id="prodi" name="prodi" class="form-select" required>
-                                    <option value="">-- Pilih Program Studi --</option>
-                                    @foreach ($prodis as $prodi)
-                                        <option value="{{ $prodi->id }}">{{ $prodi->nama_prodi }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="col-md-6">
+                                    <label for="no_hp" class="form-label">No. HP WhatsApp Aktif</label>
+                                    <input type="text" name="no_hp" id="no_hp" class="form-control"
+                                        placeholder="Contoh: 081234567890" required>
+                                </div>
                             </div>
-
                             <div class="mb-4">
                                 <label for="judul_skripsi" class="form-label fw-semibold text-secondary">Usulan Judul
                                     Skripsi</label>
@@ -150,7 +156,6 @@
                                         file PDF</strong> (Maksimal ukuran: 200 KB).
                                 </div>
                             </div>
-
                             <div class="d-flex justify-content-end border-top pt-4">
                                 <button type="submit" class="btn btn-emerald px-4 shadow-sm" id="btnSubmit">
                                     Kirim Formulir Pengajuan

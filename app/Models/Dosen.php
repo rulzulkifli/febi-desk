@@ -36,25 +36,30 @@ class Dosen extends Model
     // Hitung beban tugas (Bimbingan & Menguji) 2 minggu terakhir
     public function bebanDuaMinggu()
     {
-        // Ubah subWeek() menjadi subWeeks(2)
-        $start = \Carbon\Carbon::now()->subWeeks(2)->format('Y-m-d 00:00:00');
-        $end = \Carbon\Carbon::now()->format('Y-m-d 23:59:59');
+        // Rentang: 1 minggu ke belakang sampai 1 minggu ke depan
+        $start = \Carbon\Carbon::now()->subWeek()->startOfDay();
+        $end = \Carbon\Carbon::now()->addWeek()->endOfDay();
 
         $bimbingan = \Illuminate\Support\Facades\DB::table('pengajuan_sk_pembimbing')
             ->whereIn('status', ['siap_dicetak', 'selesai'])
             ->whereBetween('updated_at', [$start, $end])
             ->where(function ($q) {
-                $q->where('pembimbing_1_id', $this->id)->orWhere('pembimbing_2_id', $this->id);
-            })->count();
+                $q->where('pembimbing_1_id', $this->id)
+                    ->orWhere('pembimbing_2_id', $this->id);
+            })
+            ->count();
 
         $ujian = \Illuminate\Support\Facades\DB::table('pengajuan_sk_ujian')
             ->whereIn('status', ['siap_dicetak', 'selesai'])
             ->whereBetween('updated_at', [$start, $end])
             ->where(function ($q) {
-                $q->where('ketua_penguji_id', $this->id)->orWhere('sekretaris_id', $this->id)
-                    ->orWhere('anggota_1_id', $this->id)->orWhere('anggota_2_id', $this->id);
-            })->count();
+                $q->where('ketua_penguji_id', $this->id)
+                    ->orWhere('sekretaris_id', $this->id)
+                    ->orWhere('anggota_1_id', $this->id)
+                    ->orWhere('anggota_2_id', $this->id);
+            })
+            ->count();
 
-        return "- 2 Minggu: $bimbingan Bim | $ujian Pgj";
+        return "- ±1 Minggu: {$bimbingan} Bim | {$ujian} Pgj";
     }
 }

@@ -14,6 +14,7 @@ class PengajuanSkPembimbing extends Model
         'nama_mahasiswa',
         'prodi',
         'judul_skripsi',
+        'no_hp',
         'path_file_syarat',
         'pembimbing_1_id',
         'pembimbing_2_id',

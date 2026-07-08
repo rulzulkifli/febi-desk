@@ -25,6 +25,7 @@ class SkPembimbingController extends Controller
             'nama_mahasiswa' => 'required|string|max:255',
             'prodi' => 'required|exists:program_studi,id', // <- Pastikan ID prodi valid di tabel program_studi
             'judul_skripsi' => 'required|string',
+            'no_hp' => 'required|string',
             'path_file_syarat' => 'required|file|mimes:pdf|max:2048', // Maksimal PDF 2MB (Saya revisi max:2048 agar sesuai ukuran KB di Laravel)
         ], [
             'path_file_syarat.max' => 'Ukuran berkas persyaratan tidak boleh melebihi 2 Megabytes (MB).',
@@ -44,6 +45,7 @@ class SkPembimbingController extends Controller
             'nama_mahasiswa' => $request->nama_mahasiswa,
             'prodi' => $request->prodi, // Ini akan otomatis menyimpan ID prodi
             'judul_skripsi' => $request->judul_skripsi,
+            'no_hp' => $request->no_hp,
             'path_file_syarat' => $filePath,
         ]);
 
