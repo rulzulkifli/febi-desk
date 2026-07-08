@@ -69,4 +69,11 @@ class PengajuanSkUjian extends Model
     {
         return $this->belongsTo(Dosen::class, 'anggota_2_id');
     }
+
+    // Tambahkan ini di dalam class PengajuanSkUjian
+    public function programStudi(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        // 'prodi' adalah nama kolom di tabel pengajuan_sk_ujian yang menyimpan ID
+        return $this->belongsTo(\App\Models\ProgramStudi::class, 'prodi');
+    }
 }

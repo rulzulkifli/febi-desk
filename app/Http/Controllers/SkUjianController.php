@@ -5,22 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Dosen;
 use App\Models\PengajuanSkPembimbing;
 use App\Models\PengajuanSkUjian;
+use App\Models\ProgramStudi;
 use Illuminate\Http\Request;
 
 class SkUjianController extends Controller
 {
     public function create()
     {
-        // Ambil semua data dosen untuk keperluan dropdown input manual
         $dosens = Dosen::orderBy('nama_dosen', 'asc')->get();
-
-        return view('sk-ujian.create', compact('dosens'));
+        $prodis = ProgramStudi::orderBy('nama_prodi', 'asc')->get();
+        return view('sk-ujian.create', compact('dosens', 'prodis'));
     }
 
     public function cekNim($nim)
     {
         $skPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2'])
             ->where('nim', $nim)
+            ->whereIn('status', ['siap_dicetak'])
             ->latest()
             ->first();
 
@@ -36,6 +37,7 @@ class SkUjianController extends Controller
                     // Pastikan memanggil kolom yang benar (contoh: nama_dosen)
                     'pembimbing_1_nama' => $skPembimbing->pembimbing1->nama_dosen ?? 'Nama Tidak Ditemukan',
                     'pembimbing_2_id' => $skPembimbing->pembimbing_2_id,
+                    'prodi' => $skPembimbing->prodi,
                     'pembimbing_2_nama' => $skPembimbing->pembimbing2->nama_dosen ?? 'Nama Tidak Ditemukan',
                 ]
             ]);

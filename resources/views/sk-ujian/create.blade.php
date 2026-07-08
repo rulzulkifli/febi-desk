@@ -108,7 +108,9 @@
                                     Cek NIM
                                 </button>
                             </div>
+                            <div id="alertContainer" class="mt-2"></div>
                         </div>
+
                         <div class="col-md-6">
                             <label for="nama_mahasiswa" class="form-label fw-semibold text-secondary">Nama
                                 Lengkap</label>
@@ -220,9 +222,12 @@
                                 <label for="prodi" class="form-label fw-semibold text-secondary">Program
                                     Studi</label>
                                 <select id="prodi" name="prodi" class="form-select" required>
-                                    <option value="Ekonomi Syariah">Ekonomi Syariah</option>
-                                    <option value="Perbankan Syariah">Perbankan Syariah</option>
+                                    <option value="">-- Pilih Program Studi --</option>
+                                    @foreach ($prodis as $prodi)
+                                        <option value="{{ $prodi->id }}">{{ $prodi->nama_prodi }}</option>
+                                    @endforeach
                                 </select>
+                                <small class="text-muted" id="hintProdi">*Pilih program studi Anda</small>
                             </div>
                         </div>
 
@@ -304,31 +309,52 @@
                             $('#pembimbing2_nama').val(res.data.pembimbing_2_nama);
                             $('#pembimbing2_id').val(res.data.pembimbing_2_id);
 
-                            // Tampilkan section otomatis & form detail ujian
-                            $('#sectionJalurSistem').slideDown();
-                            $('#sectionDetailUjian').slideDown();
+                            $('#prodi').val(res.data.prodi).css({
+                                'pointer-events': 'none',
+                                'background-color': '#e9ecef'
+                            });
+                            $('#hintProdi').text('*Prodi terkunci otomatis dari sistem.');
 
                             $('#judul_skripsi').val(res.data.judul_skripsi).prop('readonly',
                                 true);
                             $('#hintJudul').text('*Judul terkunci otomatis dari sistem.');
 
+                            // Tampilkan section otomatis & form detail ujian
+                            $('#sectionJalurSistem').slideDown();
+                            $('#sectionDetailUjian').slideDown();
+
                         } else if (res.status === 'not_found') {
                             // SKENARIO B: Data Tidak Ditemukan (Jalur Transisi)
-                            alert(res.message);
+                            let alertHtml = `
+                                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                    <strong>Oops!</strong> ${res.message}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                </div>
+                                            `;
+                            $('#alertContainer').html(alertHtml);
+
+                            // Reset form agar tidak ada data sisa
+                            $('#nama_mahasiswa').val('');
+                            $('.js-conditional').slideUp();
 
                             // Kosongkan nama & data pembimbing untuk menghindari sisa data sebelumnya
-                            $('#nama_mahasiswa').val('');
                             $('#pembimbing1_nama').val('');
                             $('#pembimbing1_id').val('');
                             $('#pembimbing2_nama').val('');
                             $('#pembimbing2_id').val('');
 
-                            // Munculkan pertanyaan SK fisik lama
-                            $('#sectionJalurTransisi').slideDown();
+                            $('#prodi').val('').css({
+                                'pointer-events': 'auto',
+                                'background-color': '#fff'
+                            });
+                            $('#hintProdi').text('*Silakan pilih program studi Anda.');
 
                             $('#judul_skripsi').val('').prop('readonly', false);
                             $('#hintJudul').text(
                                 '*Silakan ketik manual judul skripsi Anda sesuai SK Lama.');
+
+                            // Munculkan pertanyaan SK fisik lama
+                            $('#sectionJalurTransisi').slideDown();
                         }
                     },
                     error: function(xhr, status, error) {
