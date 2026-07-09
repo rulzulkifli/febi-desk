@@ -74,5 +74,6 @@ Route::prefix('febi')->group(function () {
             Route::patch('/validasi-sk-ujian/wadek/{id}', 'prosesUjianWadek')->name('validasi.sk-ujian.wadek');
             Route::patch('/tolak-sk-ujian/{id}', 'tolakUjianWadek')->name('validasi.sk-ujian.tolak');
             Route::delete('/pengajuan-sk-ujian/{id}', 'hapusPengajuanUjian')->name('internal.pengajuan-ujian.destroy');
+            Route::get('/internal/ujian', 'monitoringUjian')->name('internal.ujian.monitoring');
         });
 });

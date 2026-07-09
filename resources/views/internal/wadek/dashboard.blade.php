@@ -11,41 +11,43 @@
     </div>
 
     {{-- KODE CARD MONITORING MULAI DARI SINI --}}
-    <div class="row mb-4">
-        {{-- Card Butuh ACC --}}
-        <div class="col-md-6 mb-3 mb-md-0">
-            <div class="card border-0 shadow-sm rounded-4 h-100"
-                style="background: linear-gradient(135deg, #fff3cd 0%, #ffecb5 100%);">
-                <div class="card-body p-4 d-flex align-items-center">
-                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
-                        style="width: 55px; height: 55px;">
-                        <i class="bi bi-hourglass-split fs-4"></i>
-                    </div>
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-md-4">
+            <div class="card-stat p-4 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-1">Menunggu ACC Anda</h6>
-                        <h3 class="fw-bolder text-warning-emphasis mb-0">{{ $butuhAccWadek }} <span
-                                class="fs-6 fw-normal text-dark">Berkas</span></h3>
+                        <span class="text-muted small fw-semibold d-block mb-1">Butuh Persetujuan Anda</span>
+                        <h3 class="fw-bold text-dark m-0">{{ $butuhAccWadek }} <span class="text-muted font-normal" style="font-size: 14px;">berkas</span></h3>
                     </div>
+                    <div class="icon-shape bg-warning-subtle text-warning"><i class="bi bi-file-earmark-text-fill"></i></div>
                 </div>
             </div>
         </div>
 
-        {{-- Card ACC Bulan Ini --}}
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100"
-                style="background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%);">
-                <div class="card-body p-4 d-flex align-items-center">
-                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
-                        style="width: 55px; height: 55px;">
-                        <i class="bi bi-check2-all fs-4"></i>
-                    </div>
+        <div class="col-12 col-md-4">
+            <div class="card-stat p-4 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-1">Total ACC (Bulan Ini)</h6>
-                        <h3 class="fw-bolder text-success-emphasis mb-0">{{ $accBulanIni }} <span
-                                class="fs-6 fw-normal text-dark">Berkas</span></h3>
+                        <span class="text-muted small fw-semibold d-block mb-1">Total di-ACC Bulan Ini</span>
+                        <h3 class="fw-bold text-dark m-0">{{ $accBulanIni }} <span class="text-muted font-normal" style="font-size: 14px;">berkas</span></h3>
                     </div>
+                    <div class="icon-shape bg-success-subtle text-success"><i class="bi bi-check-circle-fill"></i></div>
                 </div>
             </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <a href="{{ route('internal.ujian.monitoring') }}" class="text-decoration-none">
+                <div class="card-stat p-4 shadow-sm rounded-4 bg-white border border-info border-opacity-25 h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-semibold d-block mb-1">Monitoring Ujian</span>
+                            <h3 class="fw-bold text-info m-0">{{ $jumlahAkanUjian }} <span class="text-muted font-normal" style="font-size: 14px;">mahasiswa</span></h3>
+                        </div>
+                        <div class="icon-shape bg-info-subtle text-info"><i class="bi bi-calendar2-week-fill"></i></div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
     {{-- KODE CARD MONITORING SELESAI --}}

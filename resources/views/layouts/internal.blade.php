@@ -220,6 +220,11 @@
                     <i class="bi bi-people-fill"></i> Monitoring Dosen
                 </a>
 
+                <a class="nav-link-custom {{ request()->routeIs('internal.ujian.monitoring') ? 'active' : '' }}"
+                    href="{{ route('internal.ujian.monitoring') }}">
+                    <i class="bi bi-calendar-check-fill"></i> Monitoring Ujian
+                </a>
+
             </nav>
         </div>
 
@@ -333,7 +338,7 @@
                                 showConfirmButton: false,
                                 didOpen: () => {
                                     Swal
-                                .showLoading(); // Memicu animasi loading bawaan SweetAlert2
+                                        .showLoading(); // Memicu animasi loading bawaan SweetAlert2
                                 }
                             });
 

@@ -12,41 +12,51 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <div class="card-stat p-4 shadow-sm rounded-4">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold d-block mb-1">Tugas Saya (Antrean)</span>
-                        <h3 class="fw-bold text-dark m-0">{{ $menungguPengecekan }} <span class="text-muted font-normal"
-                                style="font-size: 14px;">berkas</span></h3>
+                        <span class="text-muted small fw-semibold d-block mb-1">Tugas Saya</span>
+                        <h3 class="fw-bold text-dark m-0">{{ $menungguPengecekan }} <span class="text-muted font-normal" style="font-size: 14px;">berkas</span></h3>
                     </div>
                     <div class="icon-shape bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <div class="card-stat p-4 shadow-sm rounded-4">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold d-block mb-1">Sedang di Meja Wadek</span>
-                        <h3 class="fw-bold text-dark m-0">{{ $butuhAccWadek }} <span class="text-muted font-normal"
-                                style="font-size: 14px;">berkas</span></h3>
+                        <span class="text-muted small fw-semibold d-block mb-1">Di Meja Wadek</span>
+                        <h3 class="fw-bold text-dark m-0">{{ $butuhAccWadek }} <span class="text-muted font-normal" style="font-size: 14px;">berkas</span></h3>
                     </div>
                     <div class="icon-shape bg-primary-subtle text-primary"><i class="bi bi-file-earmark-check"></i></div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <div class="card-stat p-4 shadow-sm rounded-4">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <span class="text-muted small fw-semibold d-block mb-1">Total SK Selesai</span>
-                        <h3 class="fw-bold text-dark m-0">{{ $selesaiBulanIni }} <span class="text-muted font-normal"
-                                style="font-size: 14px;">berkas</span></h3>
+                        <h3 class="fw-bold text-dark m-0">{{ $selesaiBulanIni }} <span class="text-muted font-normal" style="font-size: 14px;">berkas</span></h3>
                     </div>
                     <div class="icon-shape bg-success-subtle text-success"><i class="bi bi-check-circle-fill"></i></div>
                 </div>
             </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <a href="{{ route('internal.ujian.monitoring') }}" class="text-decoration-none">
+                <div class="card-stat p-4 shadow-sm rounded-4 bg-white border border-info border-opacity-25 h-100">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-semibold d-block mb-1">Monitoring Ujian</span>
+                            <h3 class="fw-bold text-info m-0">{{ $jumlahAkanUjian }} <span class="text-muted font-normal" style="font-size: 14px;">mahasiswa</span></h3>
+                        </div>
+                        <div class="icon-shape bg-info-subtle text-info"><i class="bi bi-calendar2-week-fill"></i></div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 

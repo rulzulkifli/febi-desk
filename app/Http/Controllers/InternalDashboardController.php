@@ -80,6 +80,14 @@ class InternalDashboardController extends Controller
 
             $selesaiBulanIni = $selesaiPembimbing + $selesaiUjian;
 
+            // --- TAMBAHAN UNTUK MONITORING UJIAN ---
+            // Menghitung jumlah mahasiswa yang akan ujian
+            $jumlahAkanUjian = \App\Models\PengajuanSkUjian::whereNotNull('tanggal_ujian')
+                ->where('status', 'siap_dicetak')
+                ->whereDate('tanggal_ujian', '>=', \Carbon\Carbon::today())
+                ->count();
+            // ----------------------------------------
+
             return view('internal.admin.dashboard', compact(
                 'pengajuanSkPembimbing',
                 'ujianProposal',
@@ -93,7 +101,8 @@ class InternalDashboardController extends Controller
                 'listDosen',
                 'menungguPengecekan',
                 'butuhAccWadek',
-                'selesaiBulanIni'
+                'selesaiBulanIni',
+                'jumlahAkanUjian'
             ));
 
             // 3. LOGIKA UNTUK WADEK 1
@@ -134,6 +143,13 @@ class InternalDashboardController extends Controller
             $accBulanIni = $selesaiPembimbing + $selesaiUjian;
             // ------------------------------------------
 
+            // --- TAMBAHAN UNTUK MONITORING UJIAN ---
+            $jumlahAkanUjian = \App\Models\PengajuanSkUjian::whereNotNull('tanggal_ujian')
+                ->where('status', 'siap_dicetak')
+                ->whereDate('tanggal_ujian', '>=', \Carbon\Carbon::today())
+                ->count();
+            // ----------------------------------------
+
             return view('internal.wadek.dashboard', compact(
                 'pengajuanSkPembimbing',
                 'listDosen',
@@ -144,8 +160,9 @@ class InternalDashboardController extends Controller
                 'badgeHasilWadek',
                 'badgeSkripsiWadek',
                 'totalUjianWadek',
-                'butuhAccWadek', // Tambahkan ini
-                'accBulanIni'    // Tambahkan ini
+                'butuhAccWadek',
+                'accBulanIni',
+                'jumlahAkanUjian'
             ));
 
             // 4. JIKA PERAN TIDAK DIKENAL
@@ -440,5 +457,72 @@ class InternalDashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Dokumen Pengajuan Ujian telah dikembalikan ke Admin Prodi dengan catatan revisi.');
+    }
+
+    public function monitoringUjian(Request $request)
+    {
+        $search = $request->input('search');
+        $tanggal = $request->input('tanggal');
+        $sesi = $request->input('sesi');
+
+        // Query dasar tanpa filter tanggal default terlebih dahulu
+        $queryProposal = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+            ->where('jenis_ujian', 'proposal')
+            ->where('status', 'siap_dicetak')
+            ->whereNotNull('tanggal_ujian');
+
+        $queryHasil = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+            ->where('jenis_ujian', 'hasil')
+            ->where('status', 'siap_dicetak')
+            ->whereNotNull('tanggal_ujian');
+
+        $querySkripsi = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+            ->where('jenis_ujian', 'skripsi')
+            ->where('status', 'siap_dicetak')
+            ->whereNotNull('tanggal_ujian');
+
+        // Terapkan filter pencarian, tanggal, dan sesi
+        foreach ([$queryProposal, $queryHasil, $querySkripsi] as $query) {
+            // Jika filter tanggal diisi, cari spesifik tanggal itu. Jika tidak, tampilkan hari ini dan seterusnya.
+            if ($tanggal) {
+                $query->whereDate('tanggal_ujian', $tanggal);
+            } else {
+                $query->whereDate('tanggal_ujian', '>=', \Carbon\Carbon::today());
+            }
+
+            // Filter sesi (waktu ujian)
+            if ($sesi) {
+                $query->where('waktu_ujian', $sesi);
+            }
+
+            // Filter nama atau NIM
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_mahasiswa', 'like', "%{$search}%")
+                        ->orWhere('nim', 'like', "%{$search}%");
+                });
+            }
+        }
+
+        // Hitung badge dinamis untuk sub-tab
+        $badgeProposal = (clone $queryProposal)->count();
+        $badgeHasil    = (clone $queryHasil)->count();
+        $badgeSkripsi  = (clone $querySkripsi)->count();
+        $totalAkanUjian = $badgeProposal + $badgeHasil + $badgeSkripsi;
+
+        // Eksekusi paginasi data
+        $ujianProposal = $queryProposal->orderBy('tanggal_ujian', 'asc')->paginate(10, ['*'], 'page_proposal')->withQueryString();
+        $ujianHasil    = $queryHasil->orderBy('tanggal_ujian', 'asc')->paginate(10, ['*'], 'page_hasil')->withQueryString();
+        $ujianSkripsi  = $querySkripsi->orderBy('tanggal_ujian', 'asc')->paginate(10, ['*'], 'page_skripsi')->withQueryString();
+
+        return view('internal.ujian.monitoring', compact(
+            'ujianProposal',
+            'ujianHasil',
+            'ujianSkripsi',
+            'badgeProposal',
+            'badgeHasil',
+            'badgeSkripsi',
+            'totalAkanUjian'
+        ));
     }
 }
