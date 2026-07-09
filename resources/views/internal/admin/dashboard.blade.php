@@ -186,12 +186,12 @@
                                                     data-bs-target="#modalProdiPembimbing{{ $item->id }}">
                                                     <i class="bi bi-pencil-square me-1"></i> Plotting Dosen
                                                 </button>
-                                                <button type="button"
-                                                    class="btn btn-danger btn-action shadow-sm btn-delete-ajax"
-                                                    data-url="{{ route('internal.pengajuan.destroy', $item->id) }}"
-                                                    title="Hapus Pengajuan Pembimbing">
-                                                    <i class="bi bi-trash-fill"></i>
-                                                </button>
+                                                <form action="{{ route('internal.pengajuan.destroy', $item->id) }}"
+                                                    method="POST" class="d-inline form-delete">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-action shadow-sm"
+                                                        title="Hapus Pengajuan"><i class="bi bi-trash-fill"></i></button>
+                                                </form>
                                             @elseif($item->status == 'siap_dicetak')
                                                 <button type="button"
                                                     class="btn btn-info text-white btn-action shadow-sm"><i
@@ -289,6 +289,14 @@
                                                             <small class="text-muted">NIM. {{ $item->nim }} | <span
                                                                     class="text-uppercase fw-semibold">{{ $item->jenis_ujian }}</span></small>
                                                         </div>
+                                                        @if ($item->catatan_admin && $item->status == 'diajukan')
+                                                            <div class="alert alert-danger p-2 mt-2 mb-0 ms-2"
+                                                                style="font-size: 11px;">
+                                                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                                                <strong>Revisi
+                                                                    Wadek:</strong> {{ $item->catatan_admin }}
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </td>
                                                 <td>
@@ -329,13 +337,15 @@
                                                                 data-bs-target="#modalProdiPenguji{{ $item->id }}">
                                                                 <i class="bi bi-pencil-square me-1"></i> Plotting Penguji
                                                             </button>
-                                                            {{-- TAMBAHAN: TOMBOL HAPUS SK UJIAN --}}
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-action shadow-sm btn-delete-ajax"
-                                                                data-url="{{ route('internal.pengajuan-ujian.destroy', $item->id) }}"
-                                                                title="Hapus Pengajuan Ujian">
-                                                                <i class="bi bi-trash-fill"></i>
-                                                            </button>
+                                                            <form
+                                                                action="{{ route('internal.pengajuan-ujian.destroy', $item->id) }}"
+                                                                method="POST" class="d-inline form-delete">
+                                                                @csrf @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="btn btn-danger btn-action shadow-sm"
+                                                                    title="Hapus Pengajuan"><i
+                                                                        class="bi bi-trash-fill"></i></button>
+                                                            </form>
                                                         @elseif($item->status == 'siap_dicetak')
                                                             <button type="button"
                                                                 class="btn btn-info text-white btn-action shadow-sm"><i

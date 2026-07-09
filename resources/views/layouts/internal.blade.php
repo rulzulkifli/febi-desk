@@ -291,7 +291,7 @@
             // 3. Fungsi Re-inisialisasi (Dipanggil awal dan setiap Pjax selesai)
             // 3. Fungsi Re-inisialisasi (Dipanggil awal dan setiap Pjax selesai)
             function initPlugins() {
-                // Notifikasi Session dengan SweetAlert
+                // Notifikasi Session dengan SweetAlert (Membaca dari elemen tersembunyi)
                 let flashSuccess = $('#flash-success');
                 if (flashSuccess.length > 0) {
                     Swal.fire({
@@ -304,77 +304,12 @@
                         timer: 3000,
                         timerProgressBar: true,
                     });
+
+                    // Hapus elemennya setelah dibaca agar tidak muncul lagi saat Pjax terpanggil
                     flashSuccess.remove();
                 }
 
-                // ==============================================================
-                // SCRIPT HAPUS GLOBAL (MENDUKUNG AJAX & FORM BIASA)
-                // ==============================================================
-
-                // 1. Setup CSRF Token untuk AJAX
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-
-                // 2. Tombol Hapus dengan AJAX (Class: .btn-delete-ajax)
-                $('.btn-delete-ajax').off('click').on('click', function(e) {
-                    e.preventDefault();
-                    let deleteUrl = $(this).data('url');
-                    let tableRow = $(this).closest('tr'); // Baris tabel yang akan dihilangkan
-
-                    Swal.fire({
-                        title: 'Apakah Anda yakin?',
-                        text: "Data dan berkas PDF akan dihapus secara permanen!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: '<i class="bi bi-trash-fill me-1"></i> Ya, Hapus!',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Menghapus...',
-                                allowOutsideClick: false,
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
-
-                            $.ajax({
-                                url: deleteUrl,
-                                type: 'DELETE',
-                                success: function(response) {
-                                    // MENGGUNAKAN FORMAT TOAST (Kecil di pojok kanan atas)
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil!',
-                                        text: response.message,
-                                        toast: true,
-                                        position: 'top-end',
-                                        showConfirmButton: false,
-                                        timer: 3000,
-                                        timerProgressBar: true
-                                    });
-
-                                    // Efek baris tabel menghilang
-                                    tableRow.fadeOut(500, function() {
-                                        $(this).remove();
-                                    });
-                                },
-                                error: function() {
-                                    Swal.fire('Gagal!', 'Terjadi kesalahan sistem.',
-                                        'error');
-                                }
-                            });
-                        }
-                    });
-                });
-
-                // 3. (Opsional) Form Hapus Biasa (Class: .form-delete) - Tetap dibiarkan sebagai cadangan
+                // Konfirmasi Hapus Data dengan SweetAlert
                 $('.form-delete').off('submit').on('submit', function(e) {
                     e.preventDefault();
                     let form = this;
@@ -390,11 +325,23 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            form.submit(); // Submit form tradisional yang menyebabkan reload
+                            // === TAMBAHAN LOADING ALERT ===
+                            Swal.fire({
+                                title: 'Menghapus...',
+                                text: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    Swal
+                                .showLoading(); // Memicu animasi loading bawaan SweetAlert2
+                                }
+                            });
+
+                            // Jalankan submit form setelah loading muncul
+                            form.submit();
                         }
                     });
                 });
-                // ==============================================================
             }
 
             // Panggil inisialisasi pada saat pertama kali load

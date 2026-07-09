@@ -205,34 +205,20 @@ class InternalDashboardController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->path_file_syarat);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data SK Pembimbing berhasil dihapus!'
-        ]);
+        // Hapus data dari database
+        $pengajuan->delete();
+
+        return redirect()->back()->with('success', 'Data pengajuan berhasil dihapus permanen.');
     }
 
     public function hapusPengajuanUjian(Request $request, $id)
     {
-        $pengajuan = \App\Models\PengajuanSkUjian::findOrFail($id);
+        $pengajuan = PengajuanSkUjian::findOrFail($id);
 
-        if ($pengajuan->path_sk_pembimbing_lama) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->path_sk_pembimbing_lama);
-        }
-
+        // Hapus data dari database
         $pengajuan->delete();
 
-        // ============================================================
-        // TAMBAHKAN KODE INI: Cek apakah request datang dari AJAX
-        // ============================================================
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Data pengajuan SK Ujian beserta berkasnya berhasil dihapus.'
-            ]);
-        }
-        // ============================================================
-
-        return redirect()->back()->with('success', 'Data pengajuan SK Ujian beserta berkasnya berhasil dihapus permanen.');
+        return redirect()->back()->with('success', 'Data pengajuan berhasil dihapus permanen.');
     }
 
     public function tolakWadek(Request $request, $id)
