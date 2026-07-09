@@ -205,10 +205,10 @@ class InternalDashboardController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->path_file_syarat);
         }
 
-        // Hapus data dari database
-        $pengajuan->delete();
-
-        return redirect()->back()->with('success', 'Data pengajuan beserta berkas PDF-nya berhasil dihapus permanen.');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data SK Pembimbing berhasil dihapus!'
+        ]);
     }
 
     public function hapusPengajuanUjian(Request $request, $id)
