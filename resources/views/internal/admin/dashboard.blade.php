@@ -288,7 +288,47 @@
                                                                 {{ $item->nama_mahasiswa }}</div>
                                                             <small class="text-muted">NIM. {{ $item->nim }} | <span
                                                                     class="text-uppercase fw-semibold">{{ $item->jenis_ujian }}</span></small>
+                                                            <div class="mt-1 d-flex flex-column gap-1"
+                                                                style="font-size: 12px; font-weight: 500;">
+                                                                @if ($item->ketuaPenguji)
+                                                                    <span class="text-danger"><i
+                                                                            class="bi bi-person-badge-fill"></i> Ketua:
+                                                                        {{ $item->ketuaPenguji->nama_dosen ?? $item->ketuaPenguji->nama }}<span
+                                                                            class="badge bg-secondary-subtle text-secondary ms-1"
+                                                                            style="font-size: 9px;">
+                                                                            {{ $item->ketuaPenguji->bebanDuaMinggu() }}
+                                                                        </span></span>
+                                                                @endif
+                                                                @if ($item->sekretaris)
+                                                                    <span class="text-warning text-darken"><i
+                                                                            class="bi bi-person-badge"></i> Sek:
+                                                                        {{ $item->sekretaris->nama_dosen ?? $item->sekretaris->nama }}<span
+                                                                            class="badge bg-secondary-subtle text-secondary ms-1"
+                                                                            style="font-size: 9px;">
+                                                                            {{ $item->sekretaris->bebanDuaMinggu() }}
+                                                                        </span></span>
+                                                                @endif
+                                                                @if ($item->anggota1)
+                                                                    <span class="text-primary"><i
+                                                                            class="bi bi-person"></i> A1:
+                                                                        {{ $item->anggota1->nama_dosen ?? $item->anggota1->nama }}<span
+                                                                            class="badge bg-secondary-subtle text-secondary ms-1"
+                                                                            style="font-size: 9px;">
+                                                                            {{ $item->anggota1->bebanDuaMinggu() }}
+                                                                        </span></span>
+                                                                @endif
+                                                                @if ($item->anggota2)
+                                                                    <span class="text-info text-darken"><i
+                                                                            class="bi bi-person"></i> A2:
+                                                                        {{ $item->anggota2->nama_dosen ?? $item->anggota2->nama }}<span
+                                                                            class="badge bg-secondary-subtle text-secondary ms-1"
+                                                                            style="font-size: 9px;">
+                                                                            {{ $item->anggota2->bebanDuaMinggu() }}
+                                                                        </span></span>
+                                                                @endif
+                                                            </div>
                                                         </div>
+
                                                         @if ($item->catatan_admin && $item->status == 'diajukan')
                                                             <div class="alert alert-danger p-2 mt-2 mb-0 ms-2"
                                                                 style="font-size: 11px;">
