@@ -7,60 +7,72 @@ use App\Http\Controllers\PortalMahasiswaController;
 use App\Http\Controllers\FebiAuthController;
 use App\Http\Controllers\InternalDashboardController;
 
-// Route untuk menampilkan halaman form
-Route::get('/sk-ujian/create', [SkUjianController::class, 'create'])->name('sk-ujian.create');
+/*
+|--------------------------------------------------------------------------
+| A. PORTAL MAHASISWA (PUBLIK)
+|--------------------------------------------------------------------------
+| Rute ini dapat diakses oleh siapa saja tanpa perlu login.
+*/
 
-// Route web standar untuk dicek oleh jQuery AJAX
-Route::get('/sk-ujian/cek-nim/{nim}', [SkUjianController::class, 'cekNim'])->name('sk-ujian.cek-nim');
-
-// Proses submit form Pengajuan SK Ujian
-Route::post('/sk-ujian/store', [SkUjianController::class, 'store'])->name('sk-ujian.store');
-
-
-// Halaman form pendaftaran SK Pembimbing
-Route::get('/sk-pembimbing/create', [SkPembimbingController::class, 'create'])->name('sk-pembimbing.create');
-
-// Proses submit form (Simpan data & upload file)
-Route::post('/sk-pembimbing/store', [SkPembimbingController::class, 'store'])->name('sk-pembimbing.store');
-
-// Route utama yang menampilkan dashboard antrean publik
+// Halaman Utama Antrean
 Route::get('/', [PortalMahasiswaController::class, 'index'])->name('portal.index');
 
-// ==========================================
-// GRUP PANEL INTERNAL KAMPUS (PREFIKS: /febi)
-// ==========================================
-// ==========================================
-// GRUP PANEL INTERNAL KAMPUS (PREFIKS: /febi)
-// ==========================================
+// Grup Form Pendaftaran SK Pembimbing
+Route::controller(SkPembimbingController::class)->prefix('sk-pembimbing')->name('sk-pembimbing.')->group(function () {
+    Route::get('/create', 'create')->name('create');
+    Route::post('/store', 'store')->name('store');
+});
+
+// Grup Form Pendaftaran SK Ujian
+Route::controller(SkUjianController::class)->prefix('sk-ujian')->name('sk-ujian.')->group(function () {
+    Route::get('/create', 'create')->name('create');
+    Route::get('/cek-nim/{nim}', 'cekNim')->name('cek-nim');
+    Route::post('/store', 'store')->name('store');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| B. PANEL INTERNAL KAMPUS (ADMIN PRODI & WADEK 1)
+|--------------------------------------------------------------------------
+| Semua rute di dalam grup ini memiliki prefix '/febi'
+*/
+
 Route::prefix('febi')->group(function () {
 
-    // 1. Jalur Autentikasi (Bisa diakses sebelum login)
-    Route::get('/login', [FebiAuthController::class, 'showLogin'])->name('febi.login');
-    Route::post('/login', [FebiAuthController::class, 'login'])->name('febi.login.proses');
-    Route::post('/logout', [FebiAuthController::class, 'logout'])->name('febi.logout');
-
-    // 2. Jalur Terlindungi (Wajib Login & Peran Admin/Wadek)
-    Route::middleware(['auth', 'cek_peran:admin_prodi,wadek_1'])->group(function () {
-
-        // Halaman Dashboard Utama
-        Route::get('/dashboard', [InternalDashboardController::class, 'index'])->name('internal.dashboard');
-
-        // Halaman Riwayat Validasi Wadek 1
-        Route::get('/wadek/riwayat', [InternalDashboardController::class, 'riwayatWadek'])->name('internal.wadek.riwayat');
-
-        // Monitoring Data Dosen
-        Route::get('/internal/dosen', [InternalDashboardController::class, 'monitoringDosen'])->name('internal.dosen.monitoring');
-
-        // Aksi Kelola Pengajuan (Hapus, Prodi, Wadek, Tolak)
-        Route::delete('/pengajuan-sk-pembimbing/{id}', [InternalDashboardController::class, 'hapusPengajuan'])->name('internal.pengajuan.destroy');
-        Route::patch('/validasi-sk-pembimbing/prodi/{id}', [InternalDashboardController::class, 'prosesProdi'])->name('validasi.sk-pembimbing.prodi');
-        Route::patch('/validasi-sk-pembimbing/wadek/{id}', [InternalDashboardController::class, 'prosesWadek'])->name('validasi.sk-pembimbing.wadek');
-        Route::patch('/tolak-sk-pembimbing/{id}', [InternalDashboardController::class, 'tolakWadek'])->name('validasi.sk-pembimbing.tolak');
-        // Letakkan di dalam Route::middleware(['auth', 'cek_peran:admin_prodi,wadek_1'])->group(...)
-        Route::patch('/validasi-sk-ujian/prodi/{id}', [InternalDashboardController::class, 'prosesUjianProdi'])->name('validasi.sk-ujian.prodi');
-
-        // Note: Jika Anda punya fungsi ACC SK Ujian, pastikan ditaruh di sini juga. Contoh:
-        // Route::patch('/validasi-sk-ujian/wadek/{id}', [InternalDashboardController::class, 'prosesUjianWadek'])->name('validasi.sk-ujian.wadek');
-
+    // 1. Jalur Autentikasi (Akses sebelum login)
+    Route::controller(FebiAuthController::class)->group(function () {
+        Route::get('/login', 'showLogin')->name('febi.login');
+        Route::post('/login', 'login')->name('febi.login.proses');
+        Route::post('/logout', 'logout')->name('febi.logout');
     });
+
+    // 2. Jalur Terlindungi (Wajib Login & Cek Peran)
+    Route::middleware(['auth', 'cek_peran:admin_prodi,wadek_1'])
+        ->controller(InternalDashboardController::class)
+        ->group(function () {
+
+            // ==========================================
+            // Dashboard & Laporan
+            // ==========================================
+            Route::get('/dashboard', 'index')->name('internal.dashboard');
+            Route::get('/wadek/riwayat', 'riwayatWadek')->name('internal.wadek.riwayat');
+            Route::get('/internal/dosen', 'monitoringDosen')->name('internal.dosen.monitoring');
+
+            // ==========================================
+            // Aksi Kelola SK Pembimbing
+            // ==========================================
+            Route::patch('/validasi-sk-pembimbing/prodi/{id}', 'prosesProdi')->name('validasi.sk-pembimbing.prodi');
+            Route::patch('/validasi-sk-pembimbing/wadek/{id}', 'prosesWadek')->name('validasi.sk-pembimbing.wadek');
+            Route::patch('/tolak-sk-pembimbing/{id}', 'tolakWadek')->name('validasi.sk-pembimbing.tolak');
+            Route::delete('/pengajuan-sk-pembimbing/{id}', 'hapusPengajuan')->name('internal.pengajuan.destroy');
+
+            // ==========================================
+            // Aksi Kelola SK Ujian
+            // ==========================================
+            Route::patch('/validasi-sk-ujian/prodi/{id}', 'prosesUjianProdi')->name('validasi.sk-ujian.prodi');
+            Route::patch('/validasi-sk-ujian/wadek/{id}', 'prosesUjianWadek')->name('validasi.sk-ujian.wadek');
+            Route::patch('/tolak-sk-ujian/{id}', 'tolakUjianWadek')->name('validasi.sk-ujian.tolak');
+            Route::delete('/pengajuan-sk-ujian/{id}', 'hapusPengajuanUjian')->name('internal.pengajuan-ujian.destroy');
+        });
 });

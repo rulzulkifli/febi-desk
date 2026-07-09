@@ -61,7 +61,21 @@
 <body>
 
     <div class="container my-5">
-        <div class="text-center mb-5">
+        <div class="row justify-content-center mb-3">
+            <div class="col-lg-9">
+                <a href="{{ route('portal.index') }}" 
+                   class="text-decoration-none text-secondary fw-semibold d-inline-flex align-items-center" 
+                   style="transition: all 0.3s ease;" 
+                   onmouseover="this.style.transform='translateX(-5px)'; this.style.color='#059669';" 
+                   onmouseout="this.style.transform='translateX(0)'; this.classList.replace('text-emerald', 'text-secondary'); this.style.color='';">
+                    <svg class="me-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+        <div class="text-center mb-5 mt-2">
             <h1 class="fw-bold text-dark tracking-tight">Formulir Pendaftaran SK Pembimbing</h1>
             <p class="text-muted">Ajukan usulan judul skripsi Anda untuk penerbitan SK Pembimbing resmi</p>
         </div>

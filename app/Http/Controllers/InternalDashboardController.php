@@ -99,18 +99,54 @@ class InternalDashboardController extends Controller
             // 3. LOGIKA UNTUK WADEK 1
         } elseif ($user->peran == 'wadek_1') {
 
-            // --- TAMBAHKAN 'programStudi' DI DALAM ARRAY WITH ---
             $pengajuanSkPembimbing = PengajuanSkPembimbing::with(['pembimbing1', 'pembimbing2', 'programStudi'])
                 ->where('status', 'persetujuan_wadek')
                 ->latest()
                 ->paginate(10, ['*'], 'page_pembimbing');
 
-            $pengajuanSkUjian = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
+            // --- PECAH QUERY BERDASARKAN JENIS UJIAN UNTUK WADEK ---
+            $baseUjianQuery = \App\Models\PengajuanSkUjian::with(['ketuaPenguji', 'sekretaris', 'anggota1', 'anggota2', 'programStudi'])
                 ->where('status', 'persetujuan_wadek')
-                ->latest()
-                ->paginate(10, ['*'], 'page_ujian');
+                ->latest();
 
-            return view('internal.wadek.dashboard', compact('pengajuanSkPembimbing', 'pengajuanSkUjian', 'listDosen'));
+            $ujianProposalWadek = (clone $baseUjianQuery)->where('jenis_ujian', 'proposal')->paginate(10, ['*'], 'page_proposal');
+            $ujianHasilWadek    = (clone $baseUjianQuery)->where('jenis_ujian', 'hasil')->paginate(10, ['*'], 'page_hasil');
+            $ujianSkripsiWadek  = (clone $baseUjianQuery)->where('jenis_ujian', 'skripsi')->paginate(10, ['*'], 'page_skripsi');
+
+            // Hitung Badge
+            $badgeProposalWadek = $ujianProposalWadek->total();
+            $badgeHasilWadek    = $ujianHasilWadek->total();
+            $badgeSkripsiWadek  = $ujianSkripsiWadek->total();
+            $totalUjianWadek    = $badgeProposalWadek + $badgeHasilWadek + $badgeSkripsiWadek;
+
+            // --- TAMBAHAN: HITUNG MONITORING WADEK ---
+            $butuhAccWadek = PengajuanSkPembimbing::where('status', 'persetujuan_wadek')->count()
+                + \App\Models\PengajuanSkUjian::where('status', 'persetujuan_wadek')->count();
+
+            $selesaiPembimbing = PengajuanSkPembimbing::whereIn('status', ['siap_dicetak', 'selesai'])
+                ->whereMonth('updated_at', date('m'))
+                ->whereYear('updated_at', date('Y'))->count();
+
+            $selesaiUjian = \App\Models\PengajuanSkUjian::whereIn('status', ['siap_dicetak', 'selesai'])
+                ->whereMonth('updated_at', date('m'))
+                ->whereYear('updated_at', date('Y'))->count();
+
+            $accBulanIni = $selesaiPembimbing + $selesaiUjian;
+            // ------------------------------------------
+
+            return view('internal.wadek.dashboard', compact(
+                'pengajuanSkPembimbing',
+                'listDosen',
+                'ujianProposalWadek',
+                'ujianHasilWadek',
+                'ujianSkripsiWadek',
+                'badgeProposalWadek',
+                'badgeHasilWadek',
+                'badgeSkripsiWadek',
+                'totalUjianWadek',
+                'butuhAccWadek', // Tambahkan ini
+                'accBulanIni'    // Tambahkan ini
+            ));
 
             // 4. JIKA PERAN TIDAK DIKENAL
         } else {
@@ -173,6 +209,30 @@ class InternalDashboardController extends Controller
         $pengajuan->delete();
 
         return redirect()->back()->with('success', 'Data pengajuan beserta berkas PDF-nya berhasil dihapus permanen.');
+    }
+
+    public function hapusPengajuanUjian(Request $request, $id)
+    {
+        $pengajuan = \App\Models\PengajuanSkUjian::findOrFail($id);
+
+        if ($pengajuan->path_sk_pembimbing_lama) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->path_sk_pembimbing_lama);
+        }
+
+        $pengajuan->delete();
+
+        // ============================================================
+        // TAMBAHKAN KODE INI: Cek apakah request datang dari AJAX
+        // ============================================================
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data pengajuan SK Ujian beserta berkasnya berhasil dihapus.'
+            ]);
+        }
+        // ============================================================
+
+        return redirect()->back()->with('success', 'Data pengajuan SK Ujian beserta berkasnya berhasil dihapus permanen.');
     }
 
     public function tolakWadek(Request $request, $id)
@@ -341,5 +401,58 @@ class InternalDashboardController extends Controller
         $pengajuan->update($updateData);
 
         return redirect()->back()->with('success', 'Jadwal dan Formasi tim penguji berhasil disimpan serta diteruskan ke Wadek 1.');
+    }
+
+    // Proses Validasi Tim Penguji oleh Wadek 1 (Bisa edit formasi, tanggal & waktu)
+    public function prosesUjianWadek(Request $request, $id)
+    {
+        $pengajuan = \App\Models\PengajuanSkUjian::findOrFail($id);
+
+        $rules = [
+            'tanggal_ujian'    => 'required|date',
+            'waktu_ujian'      => 'required',
+            'ketua_penguji_id' => 'required|exists:dosen,id',
+            'sekretaris_id'    => 'required|exists:dosen,id',
+            'anggota_1_id'     => 'required|exists:dosen,id',
+        ];
+
+        if ($pengajuan->jenis_ujian !== 'proposal') {
+            $rules['anggota_2_id'] = 'required|exists:dosen,id|different:anggota_1_id';
+        }
+
+        $request->validate($rules);
+
+        $updateData = [
+            'tanggal_ujian'    => $request->tanggal_ujian,
+            'waktu_ujian'      => $request->waktu_ujian,
+            'ketua_penguji_id' => $request->ketua_penguji_id,
+            'sekretaris_id'    => $request->sekretaris_id,
+            'anggota_1_id'     => $request->anggota_1_id,
+            'status'           => 'siap_dicetak' // Tahap akhir ACC
+        ];
+
+        if ($pengajuan->jenis_ujian !== 'proposal') {
+            $updateData['anggota_2_id'] = $request->anggota_2_id;
+        }
+
+        $pengajuan->update($updateData);
+
+        return redirect()->back()->with('success', 'SK Ujian beserta jadwalnya berhasil divalidasi dan di-ACC oleh Wadek 1.');
+    }
+
+    public function tolakUjianWadek(Request $request, $id)
+    {
+        $request->validate([
+            'catatan_penolakan' => 'required|string|max:500',
+        ]);
+
+        $pengajuan = \App\Models\PengajuanSkUjian::findOrFail($id);
+
+        $pengajuan->update([
+            'status' => 'diajukan',
+            'catatan_admin' => $request->catatan_penolakan
+        ]);
+
+        return redirect()->back()->with('success', 'Dokumen Pengajuan Ujian telah dikembalikan ke Admin Prodi dengan catatan revisi.');
     }
 }
